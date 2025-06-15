@@ -13,5 +13,10 @@ UCLASS()
 class BISHOUJO_DOOM_API ABSPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+public:
+	ABSPlayerController();
+
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void PostInitializeComponents() override;
 };

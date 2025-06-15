@@ -7,6 +7,12 @@ public class Bishoujo_Doom : ModuleRules
 	public Bishoujo_Doom(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		
+		PublicIncludePaths.AddRange(
+			[
+				"Bishoujo_Doom"
+			]
+		);
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks", "GameFeatures" });
 

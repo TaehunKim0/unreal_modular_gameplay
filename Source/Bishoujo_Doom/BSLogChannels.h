@@ -1,0 +1,7 @@
+﻿#pragma once
+
+#include "Logging/LogMacros.h"
+
+BISHOUJO_DOOM_API DECLARE_LOG_CATEGORY_EXTERN(LogBS, Log, All);
+BISHOUJO_DOOM_API DECLARE_LOG_CATEGORY_EXTERN(LogBSExperience, Log, All);
+BISHOUJO_DOOM_API DECLARE_LOG_CATEGORY_EXTERN(LogBSAbilitySystem, Log, All);

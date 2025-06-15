@@ -13,5 +13,9 @@ UCLASS()
 class BISHOUJO_DOOM_API UBSAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
+
+	UBSAbilitySystemComponent();
+
+	virtual void OnRegister() override;
 	
 };

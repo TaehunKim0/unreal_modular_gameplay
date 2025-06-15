@@ -11,7 +11,9 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"GameplayAbilities",
-				"EnhancedInput"
+				"EnhancedInput",
+				"ModularGameplay",
+				"GameFeatures"
 			]
 		}
 	],
@@ -25,6 +27,14 @@
 		},
 		{
 			"Name": "GameplayAbilities",
+			"Enabled": true
+		},
+		{
+			"Name": "GameFeatures",
+			"Enabled": true
+		},
+		{
+			"Name": "AbilitySystemGameFeatureActions",
 			"Enabled": true
 		}
 	]

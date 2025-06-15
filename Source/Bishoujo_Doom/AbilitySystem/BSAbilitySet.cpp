@@ -3,3 +3,10 @@
 
 #include "BSAbilitySet.h"
 
+UBSAbilitySet::UBSAbilitySet(const FObjectInitializer& ObjectInitializer)
+{
+}
+
+void UBSAbilitySet::GiveToAbilitySystem(UBSAbilitySystemComponent* LyraASC, UObject* SourceObject) const
+{
+}
