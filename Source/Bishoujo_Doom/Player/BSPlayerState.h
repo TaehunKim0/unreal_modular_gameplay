@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "ModularPlayerState.h"
 #include "GameFramework/PlayerState.h"
 #include "BSPlayerState.generated.h"
 
@@ -15,7 +16,7 @@ class UBSPawnData;
  * 
  */
 UCLASS()
-class BISHOUJO_DOOM_API ABSPlayerState : public APlayerState, public IAbilitySystemInterface
+class BISHOUJO_DOOM_API ABSPlayerState : public AModularPlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:

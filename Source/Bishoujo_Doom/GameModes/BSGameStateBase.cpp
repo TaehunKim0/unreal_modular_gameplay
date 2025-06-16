@@ -23,6 +23,11 @@ void ABSGameStateBase::BeginPlay()
 	}
 }
 
+void ABSGameStateBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+}
+
 void ABSGameStateBase::PreInitializeComponents()
 {
 	Super::PreInitializeComponents();

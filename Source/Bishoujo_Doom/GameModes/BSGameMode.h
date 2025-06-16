@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ModularGameMode.h"
 #include "GameFramework/GameModeBase.h"
 #include "BSGameMode.generated.h"
 
@@ -13,7 +14,7 @@ class UBSPawnData;
  * 
  */
 UCLASS(BlueprintType, Blueprintable)
-class BISHOUJO_DOOM_API ABSGameMode : public AGameModeBase
+class BISHOUJO_DOOM_API ABSGameMode : public AModularGameModeBase
 {
 	GENERATED_BODY()
 

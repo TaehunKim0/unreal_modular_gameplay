@@ -27,7 +27,6 @@ void ABSGameMode::PostInitializeComponents()
 	UE_LOG(LogBS, Log, TEXT("ABSGameMode::PostInitializeComponents"));
 }
 
-
 void ABSGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);

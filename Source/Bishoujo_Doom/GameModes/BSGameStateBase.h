@@ -3,18 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameStateBase.h"
+#include "ModularGameState.h"
 #include "BSGameStateBase.generated.h"
 
 struct FStreamableHandle;
 class UBSCharacterDefinition;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterDefinitionLoaded, UBSCharacterDefinition*, CharacterDefinition);
 /**
  * 
  */
 UCLASS(BlueprintType, Blueprintable)
-class BISHOUJO_DOOM_API ABSGameStateBase : public AGameStateBase
+class BISHOUJO_DOOM_API ABSGameStateBase : public AModularGameStateBase
 {
 	GENERATED_BODY()
 public:
@@ -22,6 +21,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void PreInitializeComponents() override;
 	virtual void PostInitializeComponents() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ModularPlayerController.h"
 #include "GameFramework/PlayerController.h"
 #include "BSPlayerController.generated.h"
 
@@ -10,7 +11,7 @@
  * 
  */
 UCLASS()
-class BISHOUJO_DOOM_API ABSPlayerController : public APlayerController
+class BISHOUJO_DOOM_API ABSPlayerController : public AModularPlayerController
 {
 	GENERATED_BODY()
 

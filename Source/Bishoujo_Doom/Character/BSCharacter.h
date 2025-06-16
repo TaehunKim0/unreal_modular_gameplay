@@ -4,15 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "ModularCharacter.h"
 #include "GameFramework/Character.h"
 #include "BSCharacter.generated.h"
 
+class UBSPawnExtensionComponent;
 class UBSAbilitySystemComponent;
 class USpringArmComponent;
 class UCameraComponent;
 
 UCLASS()
-class BISHOUJO_DOOM_API ABSCharacter : public ACharacter, public IAbilitySystemInterface
+class BISHOUJO_DOOM_API ABSCharacter : public AModularCharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -40,6 +42,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BS|Character", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBSPawnExtensionComponent> PawnExtComponent;
+	
 	/** Pointer to the ability system component that is cached for convenience. */
 	UPROPERTY()
 	TObjectPtr<UBSAbilitySystemComponent> AbilitySystemComponent;

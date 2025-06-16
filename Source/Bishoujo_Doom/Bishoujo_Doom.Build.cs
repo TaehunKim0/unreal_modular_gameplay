@@ -14,7 +14,20 @@ public class Bishoujo_Doom : ModuleRules
 			]
 		);
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks", "GameFeatures" });
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core",
+			"CoreUObject",
+			"Engine",
+			"InputCore",
+			"EnhancedInput",
+			"GameplayAbilities",
+			"GameplayTags",
+			"GameplayTasks",
+			"GameFeatures",
+			"ModularGameplay",
+			"ModularGameplayActors"
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
