@@ -10,6 +10,9 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "TestComponent/TestComponentA.h"
+#include "TestComponent/TestComponentB.h"
+#include "TestComponent/TestComponentC.h"
 
 // Sets default values
 ABSCharacter::ABSCharacter()
@@ -28,6 +31,10 @@ ABSCharacter::ABSCharacter()
 	PawnExtComponent = CreateDefaultSubobject<UBSPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 	//PawnExtComponent->OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
 	//PawnExtComponent->OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemUninitialized));
+
+	TestComponentA = CreateDefaultSubobject<UTestComponentA>(TEXT("TestComponentA"));
+	TestComponentB = CreateDefaultSubobject<UTestComponentB>(TEXT("TestComponentB"));
+	TestComponentC = CreateDefaultSubobject<UTestComponentC>(TEXT("TestComponentC"));
 	
 	// 캐릭터 이동 설정
 	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 이동 방향으로 회전

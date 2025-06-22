@@ -2,7 +2,6 @@
 
 
 #include "BSAbilitySystemComponent.h"
-
 #include "BSLogChannels.h"
 
 UBSAbilitySystemComponent::UBSAbilitySystemComponent()

@@ -1,8 +1,7 @@
 ﻿#pragma once
-#include "BSLogChannels.h"
 #include "GameplayTagContainer.h"
-#include "GameplayTagsManager.h"
 #include "NativeGameplayTags.h"
+#include "BSLogChannels.h"
 
 namespace BSGamePlayTags
 {
@@ -11,4 +10,5 @@ namespace BSGamePlayTags
 	BISHOUJO_DOOM_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataAvailable);
 	BISHOUJO_DOOM_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataInitialized);
 	BISHOUJO_DOOM_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_GameplayReady);
+
 }

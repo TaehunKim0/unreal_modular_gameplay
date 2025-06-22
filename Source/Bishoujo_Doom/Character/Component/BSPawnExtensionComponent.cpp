@@ -42,11 +42,16 @@ void UBSPawnExtensionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::BeginPlay"));
+	
 	// Listen for changes to all features
 	BindOnActorInitStateChanged(NAME_None, FGameplayTag(), false);
 
+	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::BeginPlay::TryToChangeInitState"));
 	// Notifies state manager that we have spawned, then try rest of default initialization
 	ensure(TryToChangeInitState(BSGamePlayTags::InitState_Spawned));
+	
+	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::BeginPlay::CheckDefaultInitialization"));
 	CheckDefaultInitialization();
 }
 
@@ -68,6 +73,7 @@ void UBSPawnExtensionComponent::GetLifetimeReplicatedProps(TArray<class FLifetim
 bool UBSPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState,
 	FGameplayTag DesiredState) const
 {
+	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::CanChangeInitState"));
 	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::InitState changed: %s → %s"),
 		*CurrentState.ToString(),
 		*DesiredState.ToString());
@@ -119,6 +125,8 @@ bool UBSPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManage
 void UBSPawnExtensionComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager,
 	FGameplayTag CurrentState, FGameplayTag DesiredState)
 {
+	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::HandleChangeInitState"));
+	
 	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
 	{
 		// This is currently all handled by other components listening to this state change
@@ -127,6 +135,7 @@ void UBSPawnExtensionComponent::HandleChangeInitState(UGameFrameworkComponentMan
 
 void UBSPawnExtensionComponent::OnActorInitStateChanged(const FActorInitStateChangedParams& Params)
 {
+	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::OnActorInitStateChanged"));
 	UE_LOG(LogBSInitState, Log, TEXT("Actor %s InitState changed for feature %s: %s"),
 	   *GetNameSafe(Params.OwningActor),
 	   *Params.FeatureName.ToString(),

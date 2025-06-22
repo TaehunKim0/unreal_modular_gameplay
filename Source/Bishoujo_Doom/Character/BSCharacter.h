@@ -12,6 +12,9 @@ class UBSPawnExtensionComponent;
 class UBSAbilitySystemComponent;
 class USpringArmComponent;
 class UCameraComponent;
+class UTestComponentA;
+class UTestComponentB;
+class UTestComponentC;
 
 UCLASS()
 class BISHOUJO_DOOM_API ABSCharacter : public AModularCharacter, public IAbilitySystemInterface
@@ -44,6 +47,15 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BS|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBSPawnExtensionComponent> PawnExtComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UTestComponentA* TestComponentA;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")  
+	UTestComponentB* TestComponentB;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UTestComponentC* TestComponentC;
 	
 	/** Pointer to the ability system component that is cached for convenience. */
 	UPROPERTY()
