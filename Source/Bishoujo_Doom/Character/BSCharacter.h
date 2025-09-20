@@ -33,7 +33,7 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Lyra|Character")
+	UFUNCTION(BlueprintCallable, Category = "BS|Character")
 	UBSAbilitySystemComponent* GetBSAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -48,16 +48,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BS|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBSPawnExtensionComponent> PawnExtComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UTestComponentA* TestComponentA;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")  
-	UTestComponentB* TestComponentB;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UTestComponentC* TestComponentC;
-	
-	/** Pointer to the ability system component that is cached for convenience. */
 	UPROPERTY()
 	TObjectPtr<UBSAbilitySystemComponent> AbilitySystemComponent;
 };

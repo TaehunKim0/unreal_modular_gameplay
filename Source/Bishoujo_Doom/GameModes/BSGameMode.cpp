@@ -1,17 +1,28 @@
 #include "BSGameMode.h"
-#include "BSGameStateBase.h"
+#include "BSGameState.h"
 #include "BSLogChannels.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Core/BSCharacterDefinition.h"
 #include "Player/BSPlayerState.h"
 
 ABSGameMode::ABSGameMode()
 {
 	// 기본 클래스 설정
 	PlayerStateClass = ABSPlayerState::StaticClass();
-	GameStateClass = ABSGameStateBase::StaticClass();
+	GameStateClass = ABSGameState::StaticClass();
 
 	UE_LOG(LogBS, Log, TEXT("ABSGameMode::ABSGameMode"));
+}
+
+void ABSGameMode::StartPlay()
+{
+	Super::StartPlay();
+}
+
+void ABSGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
 }
 
 void ABSGameMode::PreInitializeComponents()
@@ -35,19 +46,11 @@ void ABSGameMode::PostLogin(APlayerController* NewPlayer)
 	if (ABSPlayerState* BSPlayerState = NewPlayer->GetPlayerState<ABSPlayerState>())
 	{
 		UE_LOG(LogBS, Log, TEXT("ABSGameMode::PostLogin"));
+
+		GetGameState<ABSGameState>()->CharacterDefManagerComponent->SetCharacterDefinition(BSPlayerState, TestDef);
 	}
 }
-
-void ABSGameMode::StartPlay()
+void ABSGameMode::BeginPlay()
 {
-	Super::StartPlay();
-
-	UE_LOG(LogBS, Log, TEXT("ABSGameMode::StartPlay"));
-}
-
-void ABSGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
-{
-	Super::InitGame(MapName, Options, ErrorMessage);
-
-	UE_LOG(LogBS, Log, TEXT("ABSGameMode::InitGame"));
+	Super::BeginPlay();
 }

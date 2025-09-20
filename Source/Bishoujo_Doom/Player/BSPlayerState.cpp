@@ -6,10 +6,10 @@
 #include "BSLogChannels.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "BSPlayerController.h"
-#include "Character/BSCharacterDefinition.h"
-#include "GameModes/BSAssetManager.h"
-#include "GameModes/BSGameMode.h"
-#include "GameModes/BSGameStateBase.h"
+#include "AbilitySystem/BSAbilitySet.h"
+#include "Character/BSPawnData.h"
+#include "Core/BSCharacterDefinition.h"
+#include "GameModes/BSGameState.h"
 
 ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 {
@@ -26,19 +26,19 @@ ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 void ABSPlayerState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
-	check(AbilitySystemComponent);
-	AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
-
-	ABSGameStateBase* BSGameState = GetWorld()->GetGameState<ABSGameStateBase>();
-	if (!BSGameState)
-	{
-		//UE_LOG(LogBS, Log, TEXT("BSGameState is null in SetupDefaultCharacterForPlayer"));
-		return;
-	}
-
-	SetCharacterDefData(BSGameState->GetDefaultCharacterDefinition());
-	UE_LOG(LogBS, Log, TEXT("ABSPlayerState::PostInitializeComponents"));
+	// UE_LOG(LogBS, Log, TEXT("ABSPlayerState::PostInitializeComponents"));
+	//
+	// check(AbilitySystemComponent);
+	// AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
+	//
+	// ABSGameState* BSGameState = GetWorld()->GetGameState<ABSGameState>();
+	// if (!BSGameState)
+	// {
+	// 	UE_LOG(LogBS, Log, TEXT("BSGameState is null in SetupDefaultCharacterForPlayer"));
+	// 	return;
+	// }
+	//
+	// SetCharacterDefData(BSGameState->GetDefaultCharacterDefinition());
 }
 
 ABSPlayerController* ABSPlayerState::GetBSPlayerController() const
@@ -67,5 +67,10 @@ void ABSPlayerState::SetCharacterDefData(const UBSCharacterDefinition* InCharact
 	}
 
 	CharacterDefData = InCharacterDefData;
-	//UE_LOG(LogBS, Warning, TEXT("ABSPlayerState::SetCharacterDefData"));
+	UE_LOG(LogBS, Log, TEXT("ABSPlayerState::SetCharacterDefData"));
+}
+
+void ABSPlayerState::OnCharacterDefinitionLoaded()
+{
+	
 }

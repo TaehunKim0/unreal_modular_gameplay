@@ -25,7 +25,4 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BS|Input")
 	TObjectPtr<UBSInputConfig> InputConfig;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BS|Abilities")
-	TArray<TObjectPtr<UBSAbilitySet>> AbilitySets;
 };

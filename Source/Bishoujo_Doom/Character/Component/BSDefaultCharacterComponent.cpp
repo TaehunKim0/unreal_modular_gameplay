@@ -7,8 +7,9 @@
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameplayTagContainer.h"
-#include "Character/BSCharacterDefinition.h"
 #include "Character/BSPawnData.h"
+#include "Core/BSCharacterDefinition.h"
+#include "Engine/LocalPlayer.h"
 #include "Input/BSInputComponent.h"
 #include "Input/BSInputConfig.h"
 #include "Player/BSPlayerController.h"
@@ -95,7 +96,7 @@ void UBSDefaultCharacterComponent::InitializePlayerInput(UInputComponent* Player
 		return;
 	}
 
-	if (const UBSPawnData* PawnData = BSPS->GetCharacterDefData<UBSCharacterDefinition>()->DefaultPawnData)
+	if (const UBSPawnData* PawnData = BSPS->GetCharacterDefData()->DefaultPawnData)
     {
        if (const UBSInputConfig* InputConfig = PawnData->InputConfig)
        {
@@ -123,10 +124,12 @@ void UBSDefaultCharacterComponent::InitializePlayerInput(UInputComponent* Player
 
 void UBSDefaultCharacterComponent::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 {
+	UE_LOG(LogBS, Error, TEXT("UBSDefaultCharacterComponent::Input_AbilityInputTagPressed"));
 }
 
 void UBSDefaultCharacterComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 {
+	UE_LOG(LogBS, Error, TEXT("UBSDefaultCharacterComponent::Input_AbilityInputTagReleased"));
 }
 
 void UBSDefaultCharacterComponent::Input_Move(const FInputActionValue& InputActionValue)

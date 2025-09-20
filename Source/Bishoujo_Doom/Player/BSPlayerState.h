@@ -36,8 +36,7 @@ public:
 	UBSAbilitySystemComponent* GetBSAbilitySystemComponent() const { return AbilitySystemComponent; }
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	template <class T>
-	const T* GetCharacterDefData() const { return Cast<T>(CharacterDefData); }
+	const UBSCharacterDefinition* GetCharacterDefData() const { return CharacterDefData; }
 	void SetCharacterDefData(const UBSCharacterDefinition* InCharacterDefData);
 
 private:

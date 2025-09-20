@@ -44,11 +44,9 @@ void UBSPawnExtensionComponent::BeginPlay()
 
 	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::BeginPlay"));
 	
-	// Listen for changes to all features
 	BindOnActorInitStateChanged(NAME_None, FGameplayTag(), false);
 
 	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::BeginPlay::TryToChangeInitState"));
-	// Notifies state manager that we have spawned, then try rest of default initialization
 	ensure(TryToChangeInitState(BSGamePlayTags::InitState_Spawned));
 	
 	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::BeginPlay::CheckDefaultInitialization"));
@@ -87,7 +85,7 @@ bool UBSPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManage
 			return true;
 		}
 	}
-	if (CurrentState == BSGamePlayTags::InitState_Spawned && DesiredState == BSGamePlayTags::InitState_DataAvailable)
+	if (CurrentState == BSGamePlayTags::InitState_Spawned && DesiredState == BSGamePlayTags::InitState_CharacterDefinitionLoaded)
 	{
 		// Pawn data is required.
 		if (!PawnData)
@@ -109,12 +107,12 @@ bool UBSPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManage
 
 		return true;
 	}
-	else if (CurrentState == BSGamePlayTags::InitState_DataAvailable && DesiredState == BSGamePlayTags::InitState_DataInitialized)
+	else if (CurrentState == BSGamePlayTags::InitState_CharacterDefinitionLoaded && DesiredState == BSGamePlayTags::InitState_CharacterInitialized)
 	{
 		// Transition to initialize if all features have their data available
-		return Manager->HaveAllFeaturesReachedInitState(Pawn, BSGamePlayTags::InitState_DataAvailable);
+		return Manager->HaveAllFeaturesReachedInitState(Pawn, BSGamePlayTags::InitState_CharacterDefinitionLoaded);
 	}
-	else if (CurrentState == BSGamePlayTags::InitState_DataInitialized && DesiredState == BSGamePlayTags::InitState_GameplayReady)
+	else if (CurrentState == BSGamePlayTags::InitState_CharacterInitialized && DesiredState == BSGamePlayTags::InitState_GameplayReady)
 	{
 		return true;
 	}
@@ -127,7 +125,7 @@ void UBSPawnExtensionComponent::HandleChangeInitState(UGameFrameworkComponentMan
 {
 	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::HandleChangeInitState"));
 	
-	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
+	if (DesiredState == BSGamePlayTags::InitState_CharacterInitialized)
 	{
 		// This is currently all handled by other components listening to this state change
 	}
@@ -144,7 +142,7 @@ void UBSPawnExtensionComponent::OnActorInitStateChanged(const FActorInitStateCha
 	// If another feature is now in DataAvailable, see if we should transition to DataInitialized
 	if (Params.FeatureName != NAME_ActorFeatureName)
 	{
-		if (Params.FeatureState == BSGamePlayTags::InitState_DataAvailable)
+		if (Params.FeatureState == BSGamePlayTags::InitState_CharacterDefinitionLoaded)
 		{
 			CheckDefaultInitialization();
 		}
@@ -153,16 +151,13 @@ void UBSPawnExtensionComponent::OnActorInitStateChanged(const FActorInitStateCha
 
 /*
   필요한 다른 컴포넌트들이 준비됐는지 확인한 뒤,
-  이 컴포넌트가 차례차례 Spawned → DataAvailable → DataInitialized → GameplayReady 단계로 올라갈 수 있도록 해주는 자동 진행 시스템 입니다.
+  이 컴포넌트가 차례차례 Spawned → ... 다음 단계로 올라갈 수 있도록 해주는 자동 진행 시스템 입니다.
  */
 void UBSPawnExtensionComponent::CheckDefaultInitialization()
 {
-	// Before checking our progress, try progressing any other features we might depend on
 	CheckDefaultInitializationForImplementers();
 
-	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned, BSGamePlayTags::InitState_DataAvailable, BSGamePlayTags::InitState_DataInitialized, BSGamePlayTags::InitState_GameplayReady };
-
-	// This will try to progress from spawned (which is only set in BeginPlay) through the data initialization stages until it gets to gameplay ready
+	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned, BSGamePlayTags::InitState_CharacterDefinitionLoaded, BSGamePlayTags::InitState_CharacterInitialized, BSGamePlayTags::InitState_GameplayReady };
 	ContinueInitStateChain(StateChain);
 }
 
@@ -201,13 +196,11 @@ void UBSPawnExtensionComponent::InitializeAbilitySystem(UBSAbilitySystemComponen
 
 	if (AbilitySystemComponent == InASC)
 	{
-		// The ability system component hasn't changed.
 		return;
 	}
 
 	if (AbilitySystemComponent)
 	{
-		// Clean up the old ability system component.
 		UninitializeAbilitySystem();
 	}
 
@@ -220,8 +213,6 @@ void UBSPawnExtensionComponent::InitializeAbilitySystem(UBSAbilitySystemComponen
 	{
 		UE_LOG(LogBS, Log, TEXT("Existing avatar (authority=%d)"), ExistingAvatar->HasAuthority() ? 1 : 0);
 
-		// There is already a pawn acting as the ASC's avatar, so we need to kick it out
-		// This can happen on clients if they're lagged: their new pawn is spawned + possessed before the dead one is removed
 		ensure(!ExistingAvatar->HasAuthority());
 
 		if (UBSPawnExtensionComponent* OtherExtensionComponent = FindPawnExtensionComponent(ExistingAvatar))
@@ -243,20 +234,16 @@ void UBSPawnExtensionComponent::InitializeAbilitySystem(UBSAbilitySystemComponen
 
 void UBSPawnExtensionComponent::UninitializeAbilitySystem()
 {
-	
 	if (!AbilitySystemComponent)
 	{
 		return;
 	}
 
-	// Uninitialize the ASC if we're still the avatar actor (otherwise another pawn already did it when they became the avatar actor)
 	if (AbilitySystemComponent->GetAvatarActor() == GetOwner())
 	{
 		FGameplayTagContainer AbilityTypesToIgnore;
-		//AbilityTypesToIgnore.AddTag(BSGamePlayTags::Ability_Behavior_SurvivesDeath);
 
 		AbilitySystemComponent->CancelAbilities(nullptr, &AbilityTypesToIgnore);
-		//AbilitySystemComponent->ClearAbilityInput();
 		AbilitySystemComponent->RemoveAllGameplayCues();
 
 		if (AbilitySystemComponent->GetOwnerActor() != nullptr)
@@ -265,7 +252,6 @@ void UBSPawnExtensionComponent::UninitializeAbilitySystem()
 		}
 		else
 		{
-			// If the ASC doesn't have a valid owner, we need to clear *all* actor info, not just the avatar pairing
 			AbilitySystemComponent->ClearActorInfo();
 		}
 

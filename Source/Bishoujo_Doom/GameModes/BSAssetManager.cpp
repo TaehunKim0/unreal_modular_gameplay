@@ -3,8 +3,9 @@
 
 #include "BSAssetManager.h"
 
-#include "Character/BSCharacterDefinition.h"
+#include "Core/BSCharacterDefinition.h"
 #include "Engine/AssetManager.h"
+#include "Engine/Engine.h"
 
 UBSAssetManager& UBSAssetManager::Get()
 {

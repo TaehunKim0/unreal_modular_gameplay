@@ -13,7 +13,8 @@
 				"GameplayAbilities",
 				"EnhancedInput",
 				"ModularGameplay",
-				"GameFeatures"
+				"GameFeatures",
+				"UMG"
 			]
 		}
 	],
@@ -39,6 +40,10 @@
 		},
 		{
 			"Name": "ModularGameplayActors",
+			"Enabled": true
+		},
+		{
+			"Name": "Ellie",
 			"Enabled": true
 		}
 	]

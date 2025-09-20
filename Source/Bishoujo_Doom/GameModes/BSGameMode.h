@@ -7,6 +7,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "BSGameMode.generated.h"
 
+class UBSCharacterDefinition;
 class ABSPlayerState;
 class UBSAssetManager;
 class UBSPawnData;
@@ -28,6 +29,9 @@ protected:
 	virtual void PostInitializeComponents() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void StartPlay() override;
+	virtual void BeginPlay() override;
 	//~End of AGameModeBase interface
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameMode)
+	UBSCharacterDefinition* TestDef;
 };

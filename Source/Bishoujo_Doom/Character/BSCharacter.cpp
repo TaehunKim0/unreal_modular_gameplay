@@ -32,10 +32,6 @@ ABSCharacter::ABSCharacter()
 	//PawnExtComponent->OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
 	//PawnExtComponent->OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemUninitialized));
 
-	TestComponentA = CreateDefaultSubobject<UTestComponentA>(TEXT("TestComponentA"));
-	TestComponentB = CreateDefaultSubobject<UTestComponentB>(TEXT("TestComponentB"));
-	TestComponentC = CreateDefaultSubobject<UTestComponentC>(TEXT("TestComponentC"));
-	
 	// 캐릭터 이동 설정
 	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 이동 방향으로 회전
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // 회전 속도

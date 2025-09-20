@@ -1,4 +1,6 @@
 #include "GameFeatures/GameFeatureAction_AddInputContextMapping.h"
+
+#include "BSLogChannels.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/AssetManager.h"
@@ -10,7 +12,7 @@
 void UGameFeatureAction_AddInputContextMapping::OnGameFeatureRegistering()
 {
     Super::OnGameFeatureRegistering();
-    
+
     // AssetManager를 통해 InputMappingContext 에셋 로드 시작
     UAssetManager& AssetManager = UAssetManager::Get();
     
@@ -31,7 +33,6 @@ void UGameFeatureAction_AddInputContextMapping::OnGameFeatureRegistering()
 void UGameFeatureAction_AddInputContextMapping::OnGameFeatureActivating(FGameFeatureActivatingContext& Context)
 {
     Super::OnGameFeatureActivating(Context);
-    
     // World 확인
     UWorld* World = GetWorld();
     if (!World)
@@ -54,6 +55,8 @@ void UGameFeatureAction_AddInputContextMapping::OnGameFeatureActivating(FGameFea
             AddInputMappingForPlayer(LocalPlayer);
         }
     }
+
+    UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddInputContextMapping::OnGameFeatureActivating"));
 }
 
 void UGameFeatureAction_AddInputContextMapping::OnGameFeatureDeactivating(FGameFeatureDeactivatingContext& Context)
