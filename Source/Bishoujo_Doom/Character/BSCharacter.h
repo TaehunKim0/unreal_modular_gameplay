@@ -8,6 +8,8 @@
 #include "GameFramework/Character.h"
 #include "BSCharacter.generated.h"
 
+class UBSDebugWidget;
+class ABSHUD;
 class UBSPawnExtensionComponent;
 class UBSAbilitySystemComponent;
 class USpringArmComponent;

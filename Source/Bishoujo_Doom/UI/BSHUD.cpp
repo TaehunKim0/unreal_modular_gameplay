@@ -3,3 +3,5 @@
 
 #include "BSHUD.h"
 
+#include "Blueprint/UserWidget.h"
+

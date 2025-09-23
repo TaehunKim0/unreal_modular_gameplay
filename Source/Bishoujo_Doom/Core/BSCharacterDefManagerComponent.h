@@ -3,15 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/GameStateComponent.h"
 #include "BSCharacterDefManagerComponent.generated.h"
 
+enum EUICategory : uint8;
 class UGameFeatureAction;
 class UBSCharacterDefinition;
 class ABSPlayerState;
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterDefinitionChanged,
+	const UBSCharacterDefinition*, NewDefinition);
 
 UCLASS()
 class BISHOUJO_DOOM_API UBSCharacterDefManagerComponent : public UGameStateComponent
@@ -19,7 +23,9 @@ class BISHOUJO_DOOM_API UBSCharacterDefManagerComponent : public UGameStateCompo
 	GENERATED_BODY()
 
 public:
-	void SetCharacterDefinition(ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
+	UBSCharacterDefManagerComponent(const FObjectInitializer& ObjectInitializer);
+	
+	void SetCharacterDefinition(APlayerState* InPlayerState, FGameplayTag InTag);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -33,12 +39,18 @@ private:
 	
 	// GameFeature 관리
 	void CollectGameFeaturePluginURL(const TArray<FString>& InFeaturePluginURLArray);
-	void EnableGameFeatures(ABSPlayerState* PlayerState, const TArray<FString>& GameFeaturesToEnable);
+	void EnableGameFeatures(ABSPlayerState* PlayerState, const TArray<FString>& GameFeaturesToEnable, const UBSCharacterDefinition* NewCharacterDef) const;
 	void DisableGameFeatures(ABSPlayerState* PlayerState, const TArray<FString>& GameFeaturesToDisable);
 	void DisableAllGameFeatures();
 
 	// GameAbilitySystem 관리
 	void GiveAbilities(ABSPlayerState* PlayerState,const UBSCharacterDefinition* InCharacterDef);
+
+	UFUNCTION()
+	void OnCharacterDefinitionChanged(const UBSCharacterDefinition* InNewDefinition);
+
+public:
+	FOnCharacterDefinitionChanged OnCharacterDefinitionChangedDelegate;
 
 private:
 	TArray<FString> GameFeaturePluginURLs;

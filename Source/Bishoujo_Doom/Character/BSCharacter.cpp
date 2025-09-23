@@ -13,6 +13,8 @@
 #include "TestComponent/TestComponentA.h"
 #include "TestComponent/TestComponentB.h"
 #include "TestComponent/TestComponentC.h"
+#include "UI/BSHUD.h"
+#include "UI/Debug/BSDebugWidget.h"
 
 // Sets default values
 ABSCharacter::ABSCharacter()
@@ -70,6 +72,10 @@ void ABSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+	}
+
 	UE_LOG(LogBS, Log, TEXT("ABSCharacter::BeginPlay"));
 }
 
@@ -82,6 +88,8 @@ void ABSCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ABSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	
 }
 
 UBSAbilitySystemComponent* ABSCharacter::GetBSAbilitySystemComponent() const

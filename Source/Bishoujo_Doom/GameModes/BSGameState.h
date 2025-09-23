@@ -32,12 +32,14 @@ public:
 	TObjectPtr<UBSCharacterDefManagerComponent> CharacterDefManagerComponent;
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ABSGameState")
+	TSubclassOf<UUserWidget> CharacterSelectionWidgetClass;
+	
 	// 기본 캐릭터 정의
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ABSGameState")
-	TObjectPtr<const UBSCharacterDefinition> DefaultCharacterDefinition;
+	FGameplayTag DefaultCharacterDefinitionTag;
 	
-protected:
 	// 사용 가능한 모든 캐릭터 정의들
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ABSGameState")
-	TArray<TSoftObjectPtr<const UBSCharacterDefinition>> AvailableCharacterDefinitions;
+	TMap<FGameplayTag, TSoftObjectPtr<const UBSCharacterDefinition>> AvailableCharacterDefinitionMap;
 };

@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 #include "GameFeatureAction_AddWidgets.generated.h"
 
+enum EUICategory : uint8;
 class UUserWidget;
 class UCommonActivatableWidget;
 
@@ -19,6 +20,9 @@ struct FGameFeatureWidgetEntry
 	// Widget class to add
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 	TSoftClassPtr<UUserWidget> WidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
+	TEnumAsByte<EUICategory> WidgetCategory;
 
 	// HUD slot name where to add the widget
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")

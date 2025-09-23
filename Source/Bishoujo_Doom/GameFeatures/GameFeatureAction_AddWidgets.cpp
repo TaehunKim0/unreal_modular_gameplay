@@ -11,6 +11,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
+#include "UI/SubSystem/BSPlayerUISubSystem.h"
 
 void UGameFeatureAction_AddWidgets::OnGameFeatureRegistering()
 {
@@ -20,7 +21,7 @@ void UGameFeatureAction_AddWidgets::OnGameFeatureRegistering()
 void UGameFeatureAction_AddWidgets::OnGameFeatureActivating(FGameFeatureActivatingContext& Context)
 {
     Super::OnGameFeatureActivating(Context);
-
+    
     if (!ensureAlways(Widgets.Num() > 0))
     {
         return;
@@ -130,32 +131,17 @@ void UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded(UPlayer* Player, FPerC
         return;
     }
 
-    APlayerController* PlayerController = LocalPlayer->GetPlayerController(nullptr);
+    APlayerController* PlayerController = LocalPlayer->GetPlayerController(GetWorld());
     if (!PlayerController)
     {
         return;
     }
 
-    // Create and add widgets
     for (const FGameFeatureWidgetEntry& Entry : Widgets)
     {
-        if (UClass* WidgetClass = Entry.WidgetClass.Get())
+        if (const TSubclassOf<UUserWidget> WidgetClass = Entry.WidgetClass.Get())
         {
-            if (UUserWidget* Widget = CreateWidget<UUserWidget>(PlayerController, WidgetClass))
-            {
-                // Add to viewport or HUD slot based on your UI system
-                if (Entry.SlotTag.IsValid())
-                {
-                    // If using Common UI or similar system with slots
-                    // UCommonUIExtensions::AddWidgetToSlot(LocalPlayer, Widget, Entry.SlotTag, Entry.ZOrder);
-                }
-                else
-                {
-                    Widget->AddToViewport(Entry.ZOrder);
-                }
-
-                ActiveData.AddedWidgets.Add(Widget);
-            }
+            UBSPlayerUISubSystem::Get(PlayerController)->CreateWidget<UUserWidget>(WidgetClass, Entry.WidgetCategory, PlayerController);
         }
     }
 }

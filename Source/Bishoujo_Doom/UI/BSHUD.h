@@ -13,5 +13,9 @@ UCLASS()
 class BISHOUJO_DOOM_API ABSHUD : public AHUD
 {
 	GENERATED_BODY()
+
+public:
+	
+protected:
 	
 };

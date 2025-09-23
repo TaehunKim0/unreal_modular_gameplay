@@ -23,6 +23,9 @@ public:
 	
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "UBSCharacterDefinition")
+	FString CharacterName;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UBSCharacterDefinition")
 	TArray<FString> GameFeaturesToEnable;
 
 	UPROPERTY(EditDefaultsOnly, Instanced, Category="UBSCharacterDefinition")

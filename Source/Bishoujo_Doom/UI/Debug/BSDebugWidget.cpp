@@ -9,12 +9,6 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 
-void UBSDebugWidget::NativeConstruct()
-{
-	Super::NativeConstruct();
-
-	ShowDebugMessage("TestValue","1");
-}
 
 void UBSDebugWidget::ShowDebugMessage(const FString& InVariableName, const FString& InDesc)
 {

@@ -12,6 +12,7 @@ class UBSAbilitySystemComponent;
 class UBSCharacterDefinition;
 class ABSPlayerController;
 class UBSPawnData;
+
 /**
  * 
  */
@@ -38,9 +39,6 @@ public:
 
 	const UBSCharacterDefinition* GetCharacterDefData() const { return CharacterDefData; }
 	void SetCharacterDefData(const UBSCharacterDefinition* InCharacterDefData);
-
-private:
-	 void OnCharacterDefinitionLoaded();
 
 protected:
 	UPROPERTY()

@@ -10,6 +10,7 @@
 #include "Character/BSPawnData.h"
 #include "Core/BSCharacterDefinition.h"
 #include "GameModes/BSGameState.h"
+#include "UI/SubSystem/BSPlayerUISubSystem.h"
 
 ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 {
@@ -19,7 +20,7 @@ ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 
 	// AbilitySystemComponent needs to be updated at a high frequency.
 	SetNetUpdateFrequency(100.0f);
-	
+
 	UE_LOG(LogBS, Log, TEXT("ABSPlayerState::ABSPlayerState"));
 }
 
@@ -57,6 +58,7 @@ UAbilitySystemComponent* ABSPlayerState::GetAbilitySystemComponent() const
 	return GetBSAbilitySystemComponent();
 }
 
+// TODO : CharacterDefManagerComponent 랑 겹친다.
 void ABSPlayerState::SetCharacterDefData(const UBSCharacterDefinition* InCharacterDefData)
 {
 	check(InCharacterDefData);
@@ -67,10 +69,6 @@ void ABSPlayerState::SetCharacterDefData(const UBSCharacterDefinition* InCharact
 	}
 
 	CharacterDefData = InCharacterDefData;
-	UE_LOG(LogBS, Log, TEXT("ABSPlayerState::SetCharacterDefData"));
-}
-
-void ABSPlayerState::OnCharacterDefinitionLoaded()
-{
 	
+	UE_LOG(LogBS, Warning, TEXT("ABSPlayerState::SetCharacterDefData"));
 }

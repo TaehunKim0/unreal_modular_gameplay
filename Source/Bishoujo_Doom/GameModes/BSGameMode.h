@@ -31,7 +31,4 @@ protected:
 	virtual void StartPlay() override;
 	virtual void BeginPlay() override;
 	//~End of AGameModeBase interface
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameMode)
-	UBSCharacterDefinition* TestDef;
 };

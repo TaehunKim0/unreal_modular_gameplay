@@ -10,6 +10,8 @@ void UBSGameInstance::Init()
 {
 	Super::Init();
 
+	UE_LOG(LogBS, Log, TEXT("BSGameInstance::Init"));
+
 	UGameFrameworkComponentManager* ComponentManager = GetSubsystem<UGameFrameworkComponentManager>(this);
 
 	if (ensure(ComponentManager))
@@ -21,7 +23,14 @@ void UBSGameInstance::Init()
 	}
 }
 
+void UBSGameInstance::StartGameInstance()
+{
+	Super::StartGameInstance();
+	UE_LOG(LogBS, Log, TEXT("BSGameInstance::StartGameInstance"));
+}
+
 void UBSGameInstance::Shutdown()
 {
 	Super::Shutdown();
+	UE_LOG(LogBS, Log, TEXT("BSGameInstance::Shutdown"));
 }

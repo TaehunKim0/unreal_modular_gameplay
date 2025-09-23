@@ -17,8 +17,6 @@ UCLASS()
 class BISHOUJO_DOOM_API UBSDebugWidget : public UUserWidget
 {
 	GENERATED_BODY()
-public:
-	virtual void NativeConstruct() override;
 
 public:
 	void ShowDebugMessage(const FString& InVariableName, const FString& InDesc);
@@ -27,7 +25,6 @@ protected:
 	UPROPERTY(meta=(BindWidget))
 	UVerticalBox* VerticalBox;
 
-protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UBSDebugBoxElementWidget> DebugBoxElementWidget;
 

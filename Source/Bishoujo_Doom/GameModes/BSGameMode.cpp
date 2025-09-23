@@ -46,10 +46,9 @@ void ABSGameMode::PostLogin(APlayerController* NewPlayer)
 	if (ABSPlayerState* BSPlayerState = NewPlayer->GetPlayerState<ABSPlayerState>())
 	{
 		UE_LOG(LogBS, Log, TEXT("ABSGameMode::PostLogin"));
-
-		GetGameState<ABSGameState>()->CharacterDefManagerComponent->SetCharacterDefinition(BSPlayerState, TestDef);
 	}
 }
+
 void ABSGameMode::BeginPlay()
 {
 	Super::BeginPlay();

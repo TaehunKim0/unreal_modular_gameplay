@@ -14,7 +14,8 @@
 				"EnhancedInput",
 				"ModularGameplay",
 				"GameFeatures",
-				"UMG"
+				"UMG",
+				"CoreUObject"
 			]
 		}
 	],
