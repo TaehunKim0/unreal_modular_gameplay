@@ -7,6 +7,8 @@ public class JoelRuntime : ModuleRules
 	public JoelRuntime(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+		DefaultBuildSettings = BuildSettingsVersion.V5;
+		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
