@@ -16,6 +16,16 @@ void ABSPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 	UE_LOG(LogBS, Log, TEXT("ABSPlayerController::OnPossess"));
+}
+
+void ABSPlayerController::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+}
+
+void ABSPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
 
 	if (auto GameState = Cast<ABSGameState>(GetWorld()->GetGameState()))
 	{
@@ -29,9 +39,4 @@ void ABSPlayerController::OnPossess(APawn* InPawn)
 		SetInputMode(InputModeUI);
 		bShowMouseCursor = true;
 	}
-}
-
-void ABSPlayerController::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
 }

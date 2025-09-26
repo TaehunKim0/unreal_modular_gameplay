@@ -7,10 +7,13 @@
 #include "Components/Widget.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFeatureData.h"
 #include "GameFeatureAction.h"
+#include "Core/GameFeatureActionFilter.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
+#include "GameFramework/PlayerState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
 
 void UGameFeatureAction_AddWidgets::OnGameFeatureRegistering()
@@ -27,8 +30,10 @@ void UGameFeatureAction_AddWidgets::OnGameFeatureActivating(FGameFeatureActivati
         return;
     }
 
-    FPerContextData& ActiveData = ContextData.FindOrAdd(Context);
+    FString PluginName;
+    GetGameFeatureData()->GetPluginName(PluginName);
 
+    FPerContextData& ActiveData = ContextData.FindOrAdd(Context);
     for (const FWorldContext& WorldContext : GEngine->GetWorldContexts())
     {
         if (Context.ShouldApplyToWorldContext(WorldContext))
@@ -41,7 +46,16 @@ void UGameFeatureAction_AddWidgets::OnGameFeatureActivating(FGameFeatureActivati
                     {
                         if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
                         {
-                            AddWidgetsForPlayer(LP, ActiveData);
+                            const auto PS = PC->GetPlayerState<APlayerState>();
+                            if (!IsValid(PS))
+                            {
+                                continue;
+                            }
+
+                            if (FGameFeatureActionFilter::CanApplyFeatureAction(PluginName, PS))
+                            {
+                                AddWidgetsForPlayer(LP, ActiveData);
+                            }
                         }
                     }
                 }

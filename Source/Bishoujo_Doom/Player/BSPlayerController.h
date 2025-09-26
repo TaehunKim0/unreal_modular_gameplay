@@ -20,4 +20,5 @@ public:
 
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void PostInitializeComponents() override;
+	virtual void BeginPlay() override;
 };

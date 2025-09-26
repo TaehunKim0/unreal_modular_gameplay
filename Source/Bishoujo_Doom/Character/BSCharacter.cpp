@@ -4,17 +4,20 @@
 #include "BSCharacter.h"
 
 #include "BSLogChannels.h"
+#include "GameFeaturesSubsystem.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Component/BSPawnExtensionComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameModes/BSGameState.h"
 #include "TestComponent/TestComponentA.h"
 #include "TestComponent/TestComponentB.h"
 #include "TestComponent/TestComponentC.h"
 #include "UI/BSHUD.h"
 #include "UI/Debug/BSDebugWidget.h"
+#include "UI/SubSystem/BSPlayerUISubSystem.h"
 
 // Sets default values
 ABSCharacter::ABSCharacter()
@@ -88,8 +91,6 @@ void ABSCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ABSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	
 }
 
 UBSAbilitySystemComponent* ABSCharacter::GetBSAbilitySystemComponent() const

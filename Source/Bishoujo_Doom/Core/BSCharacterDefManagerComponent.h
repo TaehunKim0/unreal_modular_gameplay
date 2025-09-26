@@ -5,12 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Components/GameStateComponent.h"
+#include "GameFeatures/GameFeatureAction_AddWidgets.h"
 #include "BSCharacterDefManagerComponent.generated.h"
 
 enum EUICategory : uint8;
 class UGameFeatureAction;
 class UBSCharacterDefinition;
 class ABSPlayerState;
+
 /**
  * 
  */

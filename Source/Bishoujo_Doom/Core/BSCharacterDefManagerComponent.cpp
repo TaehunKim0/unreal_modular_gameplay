@@ -6,6 +6,7 @@
 #include "BSCharacterDefinition.h"
 #include "BSLogChannels.h"
 #include "GameFeatureAction.h"
+#include "GameFeatureData.h"
 #include "GameFeaturesSubsystem.h"
 #include "AbilitySystem/BSAbilitySet.h"
 #include "Character/BSPawnData.h"
@@ -38,14 +39,15 @@ void UBSCharacterDefManagerComponent::SetCharacterDefinition(APlayerState* InPla
 {
 	TSoftObjectPtr<const UBSCharacterDefinition>* NewCharacterDef = nullptr;
 	NewCharacterDef = GetGameState<ABSGameState>()->AvailableCharacterDefinitionMap.Find(InTag);
+	auto PrevDefData = Cast<ABSPlayerState>(InPlayerState)->GetCharacterDefData();
 	
-	if (!NewCharacterDef)
+	if (!IsValid(NewCharacterDef->Get()))
 	{
 		UE_LOG(LogBS, Warning, TEXT("Invalid Character Tag"));
 		return;
 	}
 	
-	if (!InPlayerState || !NewCharacterDef)
+	if (!InPlayerState || !IsValid(NewCharacterDef->Get()))
 	{
 		UE_LOG(LogBS, Warning, TEXT("Invalid parameters for SetCharacterDefinition"));
 		return;
@@ -55,6 +57,19 @@ void UBSCharacterDefManagerComponent::SetCharacterDefinition(APlayerState* InPla
 	{
 		UE_LOG(LogBS, Warning, TEXT("SetCharacterDefinition can only be called on server"));
 		return;
+	}
+
+	if (IsValid(PrevDefData))
+	{
+		if (PrevDefData->CharacterTag == InTag)
+		{
+			UE_LOG(LogBS, Warning, TEXT("SetCharacterDefinition already applied"));
+			return;
+		}
+	}
+	else
+	{
+		UE_LOG(LogBS, Warning, TEXT("PrevDefData is none"));
 	}
 
 	// 로드할 에셋들의 경로를 수집
@@ -99,7 +114,6 @@ void UBSCharacterDefManagerComponent::SetCharacterDefinition(APlayerState* InPla
 				}
 
 				// 새 캐릭터 정의 적용
-				PlayerState->SetCharacterDefData(NewCharacterDef->Get());
 				ApplyCharacterDefinition(PlayerState, NewCharacterDef->Get());
 			}
 
@@ -184,18 +198,47 @@ void UBSCharacterDefManagerComponent::EnableGameFeatures(ABSPlayerState* PlayerS
 {
 	UGameFeaturesSubsystem& GameFeatureSubsystem = UGameFeaturesSubsystem::Get();
 
-	for (const FString& FeatureName : GameFeaturesToEnable)
+	for (const FString& PluginURL : GameFeaturesToEnable)
 	{
-		UE_LOG(LogBS, Log, TEXT("Enabling GameFeature: %s"), *FeatureName);
-        
-		GameFeatureSubsystem.LoadAndActivateGameFeaturePlugin(
-			FeatureName,
-			FGameFeaturePluginLoadComplete::CreateLambda([this, FeatureName, NewCharacterDef](const UE::GameFeatures::FResult& Result)
+		UE_LOG(LogBS, Log, TEXT("Enabling GameFeature: %s"), *PluginURL);
+		GameFeatureSubsystem.GetGameFeatureDataForRegisteredPluginByURL(PluginURL)->GetPluginName(PlayerState->PendingCharacterPluginName);
+
+		auto State = UE::GameFeatures::ToString(GameFeatureSubsystem.GetPluginState(PluginURL));
+		UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::State1 : %s"), *State);
+
+		GameFeatureSubsystem.LoadGameFeaturePlugin(
+			PluginURL,
+			FGameFeaturePluginLoadComplete::CreateLambda([this, PlayerState, PluginURL, NewCharacterDef](const UE::GameFeatures::FResult& Result)
 			{
-				UE_LOG(LogBS, Warning, TEXT("GameFeature loaded successfully: %s"), *FeatureName);
+				UE_LOG(LogBS, Log, TEXT("GameFeature loaded successfully: %s"), *PluginURL);
+				
+				UGameFeaturesSubsystem& GameFeatureSubsystem = UGameFeaturesSubsystem::Get();
+				GameFeatureSubsystem.GetGameFeatureDataForRegisteredPluginByURL(PluginURL)->GetPluginName(PlayerState->PendingCharacterPluginName);
+			})
+		);
+
+		auto State2 = UE::GameFeatures::ToString(GameFeatureSubsystem.GetPluginState(PluginURL));
+		UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::State2 : %s"), *State2);
+
+		// Active만 하는 함수는 없음.
+		GameFeatureSubsystem.LoadAndActivateGameFeaturePlugin(
+			PluginURL,
+			FGameFeaturePluginLoadComplete::CreateLambda([this, PlayerState, PluginURL, NewCharacterDef](const UE::GameFeatures::FResult& Result)
+			{
+				// 모든 게임 피처 액션들이 Activated 되면 Complete 됨.
+				UE_LOG(LogBS, Warning, TEXT("GameFeature Active successfully: %s"), *PluginURL);
+				UE_LOG(LogBS, Log, TEXT("GameFeature Active Name : %s"), *PlayerState->PendingCharacterPluginName);
+
+				PlayerState->SetCharacterDefData(NewCharacterDef);
+				PlayerState->PendingCharacterPluginName.Reset();
+				UE_LOG(LogBS, Log, TEXT("PendingCharacterPluginName reset"));
+				
 				OnCharacterDefinitionChangedDelegate.Broadcast(NewCharacterDef);
 			})
 		);
+
+		auto State3 = UE::GameFeatures::ToString(GameFeatureSubsystem.GetPluginState(PluginURL));
+		UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::State3 : %s"), *State3);
 	}
 }
 
@@ -239,7 +282,7 @@ void UBSCharacterDefManagerComponent::OnCharacterDefinitionChanged(const UBSChar
 	{
 		if (InCategory == EUICategory::Debug)
 		{
-			UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("DefinitionName",  InNewDefinition->CharacterName);
+			UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("DefinitionName",  InNewDefinition->CharacterTag.ToString());
 		}
 	});
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
 #include "BSCharacterDefinition.generated.h"
 
@@ -23,7 +24,7 @@ public:
 	
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "UBSCharacterDefinition")
-	FString CharacterName;
+	FGameplayTag CharacterTag;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UBSCharacterDefinition")
 	TArray<FString> GameFeaturesToEnable;
