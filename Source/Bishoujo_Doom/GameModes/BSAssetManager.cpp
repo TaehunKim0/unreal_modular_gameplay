@@ -19,29 +19,22 @@ UBSAssetManager& UBSAssetManager::Get()
 	return *NewObject<UBSAssetManager>(); // Fatal이라 여기 도달 안함
 }
 
-void UBSAssetManager::LoadCharacterDefinition(FPrimaryAssetId CharacterDefinitionId, 
-                                              FStreamableDelegate LoadComplete)
-{
-	LoadPrimaryAssetWithDependencies<UBSCharacterDefinition>(CharacterDefinitionId, LoadComplete);
-}
-
-template<typename AssetType>
-void UBSAssetManager::LoadPrimaryAssetWithDependencies(FPrimaryAssetId AssetId, 
-													  FStreamableDelegate LoadComplete)
+void UBSAssetManager::LoadCharacterDefinition(const FPrimaryAssetId& InCharacterDefinitionId,
+                                              const FStreamableDelegate& InLoadCompleteDelegate)
 {
 	// 기본 에셋 경로 가져오기
-	FSoftObjectPath AssetPath = GetPrimaryAssetPath(AssetId);
+	const FSoftObjectPath AssetPath = GetPrimaryAssetPath(InCharacterDefinitionId);
 	if (!AssetPath.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid asset path for: %s"), *AssetId.ToString());
-		LoadComplete.ExecuteIfBound();
+		UE_LOG(LogTemp, Error, TEXT("Invalid asset path for: %s"), *InCharacterDefinitionId.ToString());
+		InLoadCompleteDelegate.ExecuteIfBound();
 		return;
 	}
     
-	// 의존성 포함해서 로드할 에셋 목록 구성
+	// 로드할 에셋 목록 구성
 	TArray<FSoftObjectPath> AssetsToLoad;
 	AssetsToLoad.Add(AssetPath);
     
 	// 비동기 로딩 시작
-	LoadAssetList(AssetsToLoad, LoadComplete, FStreamableManager::AsyncLoadHighPriority);
+	LoadAssetList(AssetsToLoad, InLoadCompleteDelegate, FStreamableManager::AsyncLoadHighPriority);
 }

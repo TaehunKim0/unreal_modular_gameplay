@@ -11,6 +11,7 @@
 #include "AbilitySystem/BSAbilitySet.h"
 #include "Character/BSPawnData.h"
 #include "Engine/AssetManager.h"
+#include "GameModes/BSAssetManager.h"
 #include "GameModes/BSGameState.h"
 #include "Player/BSPlayerState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
@@ -37,107 +38,69 @@ void UBSCharacterDefManagerComponent::EndPlay(const EEndPlayReason::Type EndPlay
 void UBSCharacterDefManagerComponent::SetCharacterDefinition(APlayerState* InPlayerState,
                                                              const FGameplayTag InTag)
 {
-	TSoftObjectPtr<const UBSCharacterDefinition>* NewCharacterDef = nullptr;
-	NewCharacterDef = GetGameState<ABSGameState>()->AvailableCharacterDefinitionMap.Find(InTag);
-	auto PrevDefData = Cast<ABSPlayerState>(InPlayerState)->GetCharacterDefData();
-	
-	if (!IsValid(NewCharacterDef->Get()))
-	{
-		UE_LOG(LogBS, Warning, TEXT("Invalid Character Tag"));
-		return;
-	}
-	
-	if (!InPlayerState || !IsValid(NewCharacterDef->Get()))
-	{
-		UE_LOG(LogBS, Warning, TEXT("Invalid parameters for SetCharacterDefinition"));
-		return;
-	}
-
-	if (GetOwner()->GetLocalRole() != ROLE_Authority)
+	if (IsValid(InPlayerState) && InPlayerState->GetLocalRole() != ROLE_Authority)
 	{
 		UE_LOG(LogBS, Warning, TEXT("SetCharacterDefinition can only be called on server"));
 		return;
 	}
+	
+	const FPrimaryAssetId CharacterDefID("Character", InTag.GetTagLeafName());
 
-	if (IsValid(PrevDefData))
+	// 1. CharacterDefinition 비동기 로드
+	UBSAssetManager::Get().LoadCharacterDefinition(CharacterDefID, FStreamableDelegate::CreateLambda([this, CharacterDefID, InPlayerState, InTag]()
 	{
-		if (PrevDefData->CharacterTag == InTag)
+		// 2. CharacterDefinition 비동기 로드 완료
+		const auto LoadedCharacterDef = UBSAssetManager::Get().GetPrimaryAssetObject(CharacterDefID);
+		if (!LoadedCharacterDef)
 		{
-			UE_LOG(LogBS, Warning, TEXT("SetCharacterDefinition already applied"));
+			UE_LOG(LogBS, Error, TEXT("Invalid LoadedCharacterDef"));
 			return;
 		}
-	}
-	else
-	{
-		UE_LOG(LogBS, Warning, TEXT("PrevDefData is none"));
-	}
+		
+		const UBSCharacterDefinition* NewCharacterDef = Cast<UBSCharacterDefinition>(LoadedCharacterDef);
+		const auto PrevDefData = Cast<ABSPlayerState>(InPlayerState)->GetCharacterDefData();
 
-	// 로드할 에셋들의 경로를 수집
-	FSoftObjectPath AssetsToLoad = NewCharacterDef->ToSoftObjectPath();
-	UAssetManager& AssetManager = UAssetManager::Get();
-	
-	AssetManager.GetStreamableManager().LoadSynchronous<UBSCharacterDefinition>(AssetsToLoad);
-	// 비동기 로딩 시작
-	auto AllAssetsLoadHandle = AssetManager.GetStreamableManager().RequestAsyncLoad(
-		AssetsToLoad,
-		FStreamableDelegate::CreateLambda([this, InPlayerState, NewCharacterDef]()
+		if (!IsValid(NewCharacterDef))
 		{
-			// 비동기 로딩 완료 후 실행
-			UE_LOG(LogBS, Log, TEXT("Character assets loaded for player: %s"), *InPlayerState->GetPlayerName());
+			UE_LOG(LogBS, Error, TEXT("Invalid NewCharacterDef"));
+			return;
+		}
 
-			// 에셋 로드 확인
-			const UBSCharacterDefinition* LoadedCharacterDef = NewCharacterDef->Get();
-			if (!LoadedCharacterDef)
-			{
-				UE_LOG(LogBS, Error, TEXT("Failed to load Character Definition"));
-				return;
-			}
+		if (IsValid(PrevDefData) && (PrevDefData->CharacterTag == InTag))
+		{
+			UE_LOG(LogBS, Error, TEXT("SetCharacterDefinition already applied"));
+			return;
+		}
+		
+		// 3. CharacterDefinition 적용
+		if (const auto PlayerState = Cast<ABSPlayerState>(InPlayerState))
+		{
+			if (const UBSCharacterDefinition* OldCharacterDef = PlayerState->GetCharacterDefData())
+				CleanupCharacterDefinition(PlayerState, OldCharacterDef);
 
-			// 이전 캐릭터 정의 가져오기
-			if (const auto PlayerState = Cast<ABSPlayerState>(InPlayerState))
-			{
-				const UBSCharacterDefinition* OldCharacterDef = PlayerState->GetCharacterDefData();
+			ApplyCharacterDefinition(PlayerState, NewCharacterDef);
+		}
 
-				// 같은 캐릭터 정의라면 무시
-				if (OldCharacterDef == NewCharacterDef->Get())
-				{
-					UE_LOG(LogBS, Warning, TEXT("OldCharacterDef == NewCharacterDef"));
-					return;
-				}
-
-				UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent:: Changing character definition for player: %s"), *PlayerState->GetPlayerName());
-
-				// 이전 캐릭터 정의 정리
-				if (OldCharacterDef)
-				{
-					CleanupCharacterDefinition(PlayerState, OldCharacterDef);
-				}
-
-				// 새 캐릭터 정의 적용
-				ApplyCharacterDefinition(PlayerState, NewCharacterDef->Get());
-			}
-
-			// // 현재 Pawn이 있다면 재스폰 고려
-			// if (APawn* CurrentPawn = InPlayerState->GetPawn())
-			// {
-			// 	// 새로운 PawnData가 다른 클래스를 사용한다면 재스폰 필요
-			// 	const UBSPawnData* NewPawnData = NewCharacterDef->DefaultPawnData;
-			// 	if (NewPawnData && NewPawnData->PawnClass != CurrentPawn->GetClass())
-			// 	{
-			// 		// 재스폰 로직 (GameMode에 위임)
-			// 		if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
-			// 		{
-			// 			if (AController* Controller = InPlayerState->GetOwner<AController>())
-			// 			{
-			// 				// 현재 Pawn 제거 후 새로 스폰
-			// 				CurrentPawn->Destroy();
-			// 				GameMode->RestartPlayer(Controller);
-			// 			}
-			// 		}
-			// 	}
-			// }
-		})
-	);
+		// // 현재 Pawn이 있다면 재스폰 고려
+		// if (APawn* CurrentPawn = InPlayerState->GetPawn())
+		// {
+		// 	// 새로운 PawnData가 다른 클래스를 사용한다면 재스폰 필요
+		// 	const UBSPawnData* NewPawnData = NewCharacterDef->DefaultPawnData;
+		// 	if (NewPawnData && NewPawnData->PawnClass != CurrentPawn->GetClass())
+		// 	{
+		// 		// 재스폰 로직 (GameMode에 위임)
+		// 		if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+		// 		{
+		// 			if (AController* Controller = InPlayerState->GetOwner<AController>())
+		// 			{
+		// 				// 현재 Pawn 제거 후 새로 스폰
+		// 				CurrentPawn->Destroy();
+		// 				GameMode->RestartPlayer(Controller);
+		// 			}
+		// 		}
+		// 	}
+		// }
+	}));
 }
 
 void UBSCharacterDefManagerComponent::CleanupCharacterDefinition(ABSPlayerState* PlayerState,
@@ -145,11 +108,15 @@ void UBSCharacterDefManagerComponent::CleanupCharacterDefinition(ABSPlayerState*
 {
 	if (!OldCharacterDef) return;
 
-	UE_LOG(LogBS, Log, TEXT("Cleaning up character definition"));
-
-	// GameFeatures 비활성화
+	// 1. GameFeatures 비활성화
 	DisableGameFeatures(PlayerState, OldCharacterDef->GameFeaturesToEnable);
 
+	// 2. CharacterDefinition 언로드
+	const FPrimaryAssetId CharacterDefID("Character", OldCharacterDef->CharacterTag.GetTagLeafName());
+	UBSAssetManager::Get().UnloadPrimaryAsset(CharacterDefID);
+
+	// 3. Pawn 의 어빌리티 제거
+	
 	// AbilitySets 제거 (현재 Pawn이 있다면)
 	if (APawn* CurrentPawn = PlayerState->GetPawn())
 	{
@@ -171,7 +138,7 @@ void UBSCharacterDefManagerComponent::CollectGameFeaturePluginURL(const TArray<F
 		}
 		else
 		{
-			UE_LOG(LogBS, Warning, TEXT("CollectGameFeaturePluginURL Failed"));
+			UE_LOG(LogBS, Error, TEXT("CollectGameFeaturePluginURL Failed"));
 		}
 	}
 }
@@ -181,7 +148,7 @@ void UBSCharacterDefManagerComponent::ApplyCharacterDefinition(ABSPlayerState* P
 {
 	if (!NewCharacterDef) return;
 
-	UE_LOG(LogBS, Log, TEXT("Applying new character definition"));
+	UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::Applying new character definition"));
 
 	// GiveAbilities
 	GiveAbilities(PlayerState, NewCharacterDef);
@@ -201,10 +168,10 @@ void UBSCharacterDefManagerComponent::EnableGameFeatures(ABSPlayerState* PlayerS
 	for (const FString& PluginURL : GameFeaturesToEnable)
 	{
 		UE_LOG(LogBS, Log, TEXT("Enabling GameFeature: %s"), *PluginURL);
-		GameFeatureSubsystem.GetGameFeatureDataForRegisteredPluginByURL(PluginURL)->GetPluginName(PlayerState->PendingCharacterPluginName);
-
-		auto State = UE::GameFeatures::ToString(GameFeatureSubsystem.GetPluginState(PluginURL));
-		UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::State1 : %s"), *State);
+		
+		// GameFeatureSubsystem.GetGameFeatureDataForRegisteredPluginByURL(PluginURL)->GetPluginName(PlayerState->PendingCharacterPluginName);
+		// auto State = UE::GameFeatures::ToString(GameFeatureSubsystem.GetPluginState(PluginURL));
+		// UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::State1 : %s"), *State);
 
 		GameFeatureSubsystem.LoadGameFeaturePlugin(
 			PluginURL,
@@ -217,28 +184,18 @@ void UBSCharacterDefManagerComponent::EnableGameFeatures(ABSPlayerState* PlayerS
 			})
 		);
 
-		auto State2 = UE::GameFeatures::ToString(GameFeatureSubsystem.GetPluginState(PluginURL));
-		UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::State2 : %s"), *State2);
-
 		// Active만 하는 함수는 없음.
 		GameFeatureSubsystem.LoadAndActivateGameFeaturePlugin(
 			PluginURL,
 			FGameFeaturePluginLoadComplete::CreateLambda([this, PlayerState, PluginURL, NewCharacterDef](const UE::GameFeatures::FResult& Result)
 			{
 				// 모든 게임 피처 액션들이 Activated 되면 Complete 됨.
-				UE_LOG(LogBS, Warning, TEXT("GameFeature Active successfully: %s"), *PluginURL);
-				UE_LOG(LogBS, Log, TEXT("GameFeature Active Name : %s"), *PlayerState->PendingCharacterPluginName);
-
 				PlayerState->SetCharacterDefData(NewCharacterDef);
 				PlayerState->PendingCharacterPluginName.Reset();
-				UE_LOG(LogBS, Log, TEXT("PendingCharacterPluginName reset"));
 				
 				OnCharacterDefinitionChangedDelegate.Broadcast(NewCharacterDef);
 			})
 		);
-
-		auto State3 = UE::GameFeatures::ToString(GameFeatureSubsystem.GetPluginState(PluginURL));
-		UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::State3 : %s"), *State3);
 	}
 }
 
@@ -282,6 +239,7 @@ void UBSCharacterDefManagerComponent::OnCharacterDefinitionChanged(const UBSChar
 	{
 		if (InCategory == EUICategory::Debug)
 		{
+			UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent:OnUICreated"));
 			UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("DefinitionName",  InNewDefinition->CharacterTag.ToString());
 		}
 	});

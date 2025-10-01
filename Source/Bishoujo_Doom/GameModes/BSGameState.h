@@ -38,8 +38,4 @@ public:
 	// 기본 캐릭터 정의
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ABSGameState")
 	FGameplayTag DefaultCharacterDefinitionTag;
-	
-	// 사용 가능한 모든 캐릭터 정의들
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ABSGameState")
-	TMap<FGameplayTag, TSoftObjectPtr<const UBSCharacterDefinition>> AvailableCharacterDefinitionMap;
 };

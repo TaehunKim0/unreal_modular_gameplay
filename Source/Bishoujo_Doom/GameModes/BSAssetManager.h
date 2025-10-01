@@ -23,13 +23,9 @@ public:
 	static UBSAssetManager& Get();
     
 	// 캐릭터 관련
-	void LoadCharacterDefinition(FPrimaryAssetId CharacterDefinitionId, 
-								FStreamableDelegate LoadComplete);
+	void LoadCharacterDefinition(const FPrimaryAssetId& InCharacterDefinitionId,
+								const FStreamableDelegate& InLoadCompleteDelegate);
 
-private:
-	template<typename AssetType>
-	void LoadPrimaryAssetWithDependencies(FPrimaryAssetId AssetId, 
-										FStreamableDelegate LoadComplete);
 private:
 	FOnBSCharacterLoaded OnCharacterLoaded;
 };

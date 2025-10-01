@@ -23,6 +23,11 @@ public:
 	UBSCharacterDefinition();
 	
 public:
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId("Character", CharacterTag.GetTagLeafName());
+	}
+	
 	UPROPERTY(EditDefaultsOnly, Category = "UBSCharacterDefinition")
 	FGameplayTag CharacterTag;
 	

@@ -49,12 +49,15 @@ void UBSPlayerUISubSystem::HideWidget(EUICategory InCategory)
 UUserWidget* UBSPlayerUISubSystem::GetWidgetByCategory(EUICategory InCategory) const
 {
 	if (ActiveWidgetMap.IsEmpty())
+	{
 		return nullptr;
+	}
 	
 	if (const auto FoundWidget = ActiveWidgetMap.Find(InCategory))
 	{
 		return *FoundWidget;
 	}
+
 	return nullptr;
 }
 
@@ -66,10 +69,14 @@ void UBSPlayerUISubSystem::ShowDebugMessage(const FString& InVariableName, const
 		{
 			DebugWidget->ShowDebugMessage(InVariableName, InDesc);
 		}
+		else
+		{
+			UE_LOG(LogBS, Error, TEXT("UBSPlayerUISubSystem::DebugWidget is Null"));
+		}
 	}
 	else
 	{
-		UE_LOG(LogBS, Log, TEXT("UBSPlayerUISubSystem::ShowDebugMessage Failed"));
+		UE_LOG(LogBS, Error, TEXT("UBSPlayerUISubSystem::Widget is Null"));
 	}
 }
 

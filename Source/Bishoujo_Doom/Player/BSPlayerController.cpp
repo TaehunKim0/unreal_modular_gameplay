@@ -40,3 +40,41 @@ void ABSPlayerController::BeginPlay()
 		bShowMouseCursor = true;
 	}
 }
+
+void ABSPlayerController::CheckGameFeatureStatus()
+{
+	FString PluginURL = TEXT("file:../../../../../../Users/jack0/GitHub/Personal/bishoujo_doom/Bishoujo_Doom/Plugins/GameFeatures/Characters/Ellie/Ellie.uplugin");
+    
+	UGameFeaturesSubsystem& GFS = UGameFeaturesSubsystem::Get();
+    
+	bool IsLoaded = GFS.IsGameFeaturePluginLoaded(PluginURL);
+    
+	FString RoleString;
+	if (GetNetMode() == NM_Client)
+	{
+		RoleString = TEXT("Client");
+	}
+	else if (GetNetMode() == NM_ListenServer)
+	{
+		RoleString = TEXT("ListenServer");
+	}
+	else if (GetNetMode() == NM_DedicatedServer)
+	{
+		RoleString = TEXT("DedicatedServer");
+	}
+	else
+	{
+		RoleString = TEXT("Standalone");
+	}
+    
+	UE_LOG(LogBS, Warning, TEXT("=== GameFeature Status ==="));
+	UE_LOG(LogBS, Warning, TEXT("Role: %s"), *RoleString);
+	UE_LOG(LogBS, Warning, TEXT("IsLoaded: %s"), IsLoaded ? TEXT("true") : TEXT("false"));
+	UE_LOG(LogBS, Warning, TEXT("IsLocalController: %s"), IsLocalController() ? TEXT("true") : TEXT("false"));
+    
+	if (IsLocalController())
+	{
+		UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("Role", RoleString);
+		UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("Loaded", IsLoaded ? TEXT("Yes") : TEXT("No"));
+	}
+}
