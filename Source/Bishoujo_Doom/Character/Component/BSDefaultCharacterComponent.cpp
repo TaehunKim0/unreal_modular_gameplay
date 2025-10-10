@@ -96,7 +96,7 @@ void UBSDefaultCharacterComponent::InitializePlayerInput(UInputComponent* Player
 		return;
 	}
 
-	if (const UBSPawnData* PawnData = BSPS->GetCharacterDefData()->DefaultPawnData)
+	if (const UBSPawnData* PawnData = BSPS->GetCharacterDefData()->PawnData)
     {
        if (const UBSInputConfig* InputConfig = PawnData->InputConfig)
        {

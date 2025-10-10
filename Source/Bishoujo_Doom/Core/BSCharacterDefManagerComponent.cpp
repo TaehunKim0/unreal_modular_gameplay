@@ -35,6 +35,53 @@ void UBSCharacterDefManagerComponent::EndPlay(const EEndPlayReason::Type EndPlay
 	DisableAllGameFeatures();
 }
 
+void UBSCharacterDefManagerComponent::ApplyPawnData(const ABSPlayerState* InPlayerState,
+	const UBSCharacterDefinition* NewCharacterDef) const
+{
+	APawn* CurrentPawn = InPlayerState->GetPawn();
+	if (!IsValid(CurrentPawn))
+	{
+		UE_LOG(LogBS, Error, TEXT("UBSCharacterDefManagerComponent::GetPawn is nullptr"));
+		return;
+	}
+
+	const UBSPawnData* NewPawnData = NewCharacterDef->PawnData;
+	if (!IsValid(NewPawnData->PawnClass))
+	{
+		UE_LOG(LogBS, Error, TEXT("UBSCharacterDefManagerComponent::NewPawnData->PawnClass is nullptr"));
+		return;
+	}
+
+	if (NewPawnData->PawnClass == CurrentPawn->GetClass())
+	{
+		UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::NewPawnData->PawnClass and CurrentPawnClass is Same"));
+		return;
+	}
+
+	AController* Controller = InPlayerState->GetOwner<AController>();
+	check(Controller);
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = Controller;
+	SpawnParams.Instigator = CurrentPawn->GetInstigator();
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	FVector SpawnLocation = CurrentPawn->GetActorLocation();
+	FRotator SpawnRotation = CurrentPawn->GetActorRotation();
+	
+	CurrentPawn->Destroy();
+
+	APawn* NewPawn = GetWorld()->SpawnActor<APawn>(NewPawnData->PawnClass, SpawnLocation, SpawnRotation, SpawnParams);
+	if (NewPawn == nullptr)
+	{
+		UE_LOG(LogBS, Error, TEXT("UBSCharacterDefManagerComponent::Spawn NewPawn is failed"));
+		return;
+	}
+	
+	Controller->Possess(NewPawn);
+	UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::ApplyPawnData: Successfully spawned and possessed new Pawn: %s"), *NewPawn->GetName());
+}
+
 void UBSCharacterDefManagerComponent::SetCharacterDefinition(APlayerState* InPlayerState,
                                                              const FGameplayTag InTag)
 {
@@ -80,26 +127,6 @@ void UBSCharacterDefManagerComponent::SetCharacterDefinition(APlayerState* InPla
 
 			ApplyCharacterDefinition(PlayerState, NewCharacterDef);
 		}
-
-		// // 현재 Pawn이 있다면 재스폰 고려
-		// if (APawn* CurrentPawn = InPlayerState->GetPawn())
-		// {
-		// 	// 새로운 PawnData가 다른 클래스를 사용한다면 재스폰 필요
-		// 	const UBSPawnData* NewPawnData = NewCharacterDef->DefaultPawnData;
-		// 	if (NewPawnData && NewPawnData->PawnClass != CurrentPawn->GetClass())
-		// 	{
-		// 		// 재스폰 로직 (GameMode에 위임)
-		// 		if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
-		// 		{
-		// 			if (AController* Controller = InPlayerState->GetOwner<AController>())
-		// 			{
-		// 				// 현재 Pawn 제거 후 새로 스폰
-		// 				CurrentPawn->Destroy();
-		// 				GameMode->RestartPlayer(Controller);
-		// 			}
-		// 		}
-		// 	}
-		// }
 	}));
 }
 
@@ -110,6 +137,8 @@ void UBSCharacterDefManagerComponent::CleanupCharacterDefinition(ABSPlayerState*
 
 	// 1. GameFeatures 비활성화
 	DisableGameFeatures(PlayerState, OldCharacterDef->GameFeaturesToEnable);
+
+	// PawnClass 변경
 
 	// 2. CharacterDefinition 언로드
 	const FPrimaryAssetId CharacterDefID("Character", OldCharacterDef->CharacterTag.GetTagLeafName());
@@ -143,21 +172,17 @@ void UBSCharacterDefManagerComponent::CollectGameFeaturePluginURL(const TArray<F
 	}
 }
 
-void UBSCharacterDefManagerComponent::ApplyCharacterDefinition(ABSPlayerState* PlayerState,
+void UBSCharacterDefManagerComponent::ApplyCharacterDefinition(ABSPlayerState* InPlayerState,
                                                                const UBSCharacterDefinition* NewCharacterDef)
 {
 	if (!NewCharacterDef) return;
 
-	UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::Applying new character definition"));
-
-	// GiveAbilities
-	GiveAbilities(PlayerState, NewCharacterDef);
-
-	// GameFeatures URL 수집
-	CollectGameFeaturePluginURL(NewCharacterDef->GameFeaturesToEnable);
+	ApplyPawnData(InPlayerState, NewCharacterDef);
 	
-	// GameFeatures 활성화
-	EnableGameFeatures(PlayerState, GameFeaturePluginURLs, NewCharacterDef);
+	ApplyAbilitySets(InPlayerState, NewCharacterDef);
+
+	CollectGameFeaturePluginURL(NewCharacterDef->GameFeaturesToEnable);
+	EnableGameFeatures(InPlayerState, GameFeaturePluginURLs, NewCharacterDef);
 }
 
 void UBSCharacterDefManagerComponent::EnableGameFeatures(ABSPlayerState* PlayerState,
@@ -169,10 +194,6 @@ void UBSCharacterDefManagerComponent::EnableGameFeatures(ABSPlayerState* PlayerS
 	{
 		UE_LOG(LogBS, Log, TEXT("Enabling GameFeature: %s"), *PluginURL);
 		
-		// GameFeatureSubsystem.GetGameFeatureDataForRegisteredPluginByURL(PluginURL)->GetPluginName(PlayerState->PendingCharacterPluginName);
-		// auto State = UE::GameFeatures::ToString(GameFeatureSubsystem.GetPluginState(PluginURL));
-		// UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::State1 : %s"), *State);
-
 		GameFeatureSubsystem.LoadGameFeaturePlugin(
 			PluginURL,
 			FGameFeaturePluginLoadComplete::CreateLambda([this, PlayerState, PluginURL, NewCharacterDef](const UE::GameFeatures::FResult& Result)
@@ -184,7 +205,6 @@ void UBSCharacterDefManagerComponent::EnableGameFeatures(ABSPlayerState* PlayerS
 			})
 		);
 
-		// Active만 하는 함수는 없음.
 		GameFeatureSubsystem.LoadAndActivateGameFeaturePlugin(
 			PluginURL,
 			FGameFeaturePluginLoadComplete::CreateLambda([this, PlayerState, PluginURL, NewCharacterDef](const UE::GameFeatures::FResult& Result)
@@ -222,13 +242,13 @@ void UBSCharacterDefManagerComponent::DisableAllGameFeatures()
 	}
 }
 
-void UBSCharacterDefManagerComponent::GiveAbilities(ABSPlayerState* PlayerState, const UBSCharacterDefinition* InCharacterDef)
+void UBSCharacterDefManagerComponent::ApplyAbilitySets(ABSPlayerState* InPlayerState, const UBSCharacterDefinition* InCharacterDef)
 {
 	for (const UBSAbilitySet* AbilitySet : InCharacterDef->AbilitySets)
 	{
 		if (AbilitySet)
 		{
-			AbilitySet->GiveToAbilitySystem(PlayerState->GetBSAbilitySystemComponent(), nullptr);
+			AbilitySet->GiveToAbilitySystem(InPlayerState->GetBSAbilitySystemComponent(), nullptr);
 		}
 	}
 }

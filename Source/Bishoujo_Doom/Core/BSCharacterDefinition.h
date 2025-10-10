@@ -34,12 +34,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "UBSCharacterDefinition")
 	TArray<FString> GameFeaturesToEnable;
 
-	UPROPERTY(EditDefaultsOnly, Instanced, Category="UBSCharacterDefinition")
-	TArray<TObjectPtr<UGameFeatureAction>> DefaultGameFeatureActions;
-	
 	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
-	TObjectPtr<const UBSPawnData> DefaultPawnData;
+	TObjectPtr<const UBSPawnData> PawnData;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UBSCharacterDefinition")
-	TArray<TObjectPtr<UBSAbilitySet>> AbilitySets;
+	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UBSCharacterDefinition")
+	// TArray<TObjectPtr<UBSAbilitySet>> AbilitySets;
 };
