@@ -21,6 +21,9 @@ class BISHOUJO_DOOM_API UBSAssetManager : public UAssetManager
 
 public:
 	static UBSAssetManager& Get();
+
+	void LoadAsset(const FPrimaryAssetId& InCharacterDefinitionId,
+								const FStreamableDelegate& InLoadCompleteDelegate);
     
 	// 캐릭터 관련
 	void LoadCharacterDefinition(const FPrimaryAssetId& InCharacterDefinitionId,

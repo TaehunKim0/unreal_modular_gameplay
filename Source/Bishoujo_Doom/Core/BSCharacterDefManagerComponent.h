@@ -37,7 +37,7 @@ private:
 	void ApplyCharacterDefinition(ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
 	
 	void ApplyPawnData(const ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef) const;
-	void ApplyAbilitySets(ABSPlayerState* InPlayerState,const UBSCharacterDefinition* InCharacterDef);
+	//void ApplyAbilitySets(ABSPlayerState* InPlayerState,const UBSCharacterDefinition* InCharacterDef);
 	
 	void CleanupCharacterDefinition(ABSPlayerState* PlayerState, const UBSCharacterDefinition* OldCharacterDef);
 	

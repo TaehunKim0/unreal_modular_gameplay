@@ -4,6 +4,7 @@
 #include "BSPlayerController.h"
 
 #include "BSLogChannels.h"
+#include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "GameModes/BSGameState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
 
@@ -33,12 +34,23 @@ void ABSPlayerController::BeginPlay()
 		auto Widget = UBSPlayerUISubSystem::Get(this)->CreateWidget(GameState->CharacterSelectionWidgetClass,
 			EUICategory::CharacterSelection, this);
 		
-		FInputModeUIOnly InputModeUI;
-		InputModeUI.SetWidgetToFocus(Widget->TakeWidget());
-		InputModeUI.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		SetInputMode(InputModeUI);
-		bShowMouseCursor = true;
+		// FInputModeUIOnly InputModeUI;
+		// InputModeUI.SetWidgetToFocus(Widget->TakeWidget());
+		// InputModeUI.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		// SetInputMode(InputModeUI);
+		// bShowMouseCursor = true;
 	}
+}
+
+void ABSPlayerController::ProcessPlayerInput(const float DeltaTime, const bool bGamePaused)
+{
+	if (UBSAbilitySystemComponent* BSASC = GetBSAbilitySystemComponent())
+	{
+		// 수집된 입력으로 어빌리티 활성화
+		BSASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+	}
+	
+	Super::ProcessPlayerInput(DeltaTime, bGamePaused);
 }
 
 void ABSPlayerController::CheckGameFeatureStatus()

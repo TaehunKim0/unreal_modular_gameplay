@@ -31,37 +31,19 @@ public:
 	virtual void CheckDefaultInitialization() override;
 	//~ End IGameFrameworkInitStateInterface interface
 
-	/** Returns the pawn extension component if one exists on the specified actor. */
 	UFUNCTION(BlueprintPure, Category = "BS|Pawn")
 	static UBSPawnExtensionComponent* FindPawnExtensionComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UBSPawnExtensionComponent>() : nullptr); }
-
-public:
-	template <class T>
-	const T* GetPawnData() const { return Cast<T>(PawnData); }
-
-	/** Sets the current pawn data */
-	void SetPawnData(const UBSPawnData* InPawnData);
-
-	UFUNCTION()
-	void OnRep_PawnData();
 
 public:
 	UFUNCTION(BlueprintPure, Category = "BS|Pawn")
 	UBSAbilitySystemComponent* GetBSAbilitySystemComponent() const { return AbilitySystemComponent; }
 
-	/** Should be called by the owning pawn to become the avatar of the ability system. */
 	void InitializeAbilitySystem(UBSAbilitySystemComponent* InASC, AActor* InOwnerActor);
-
-	/** Should be called by the owning pawn to remove itself as the avatar of the ability system. */
 	void UninitializeAbilitySystem();
-
-	/** Should be called by the owning pawn when the pawn's controller changes. */
+	
 	void HandleControllerChanged();
-
-	/** Should be called by the owning pawn when the player state has been replicated. */
 	void HandlePlayerStateReplicated();
-
-	/** Should be called by the owning pawn when the input component is setup. */
+	
 	void SetupPlayerInputComponent();
 
 protected:
@@ -70,11 +52,10 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
-private:
-	/** Pawn data used to create the pawn. Specified from a spawn function or on a placed instance. */
-	UPROPERTY(EditInstanceOnly, ReplicatedUsing = OnRep_PawnData, Category = "BS|Pawn")
-	TObjectPtr<const UBSPawnData> PawnData;
+	UFUNCTION()
+	void OnCharacterDefinitionChanged(const UBSCharacterDefinition* InNewDefinition);
 
+private:
 	/** Pointer to the ability system component that is cached for convenience. */
 	UPROPERTY()
 	TObjectPtr<UBSAbilitySystemComponent> AbilitySystemComponent;

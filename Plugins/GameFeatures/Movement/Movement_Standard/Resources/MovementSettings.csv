@@ -1,0 +1,2 @@
+---,SpeedSettings,AccelerationSettings,RotationSettings,SprintSettings
+Default,"(WalkSpeed=10000.000000,SprintSpeed=600.000000,BackwardSpeedMultiplier=0.700000,StrafeSpeedMultiplier=0.850000)","(MaxAcceleration=2048.000000,BrakingDeceleration=2048.000000,GroundFriction=8.000000)","(RotationRate=540.000000,bOrientRotationToMovement=True,bUseControllerDesiredRotation=False)","(StaminaCostPerSecond=5.000000,bStopStaminaRegenWhileSprinting=True,StopStaminaThreshold=10.000000)"
