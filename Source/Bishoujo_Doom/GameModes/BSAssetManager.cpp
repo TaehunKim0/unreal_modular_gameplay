@@ -19,6 +19,27 @@ UBSAssetManager& UBSAssetManager::Get()
 	return *NewObject<UBSAssetManager>(); // Fatal이라 여기 도달 안함
 }
 
+void UBSAssetManager::LoadAsset(const FPrimaryAssetId& InAssetID,
+	const FStreamableDelegate& InLoadCompleteDelegate)
+{
+	// 기본 에셋 경로 가져오기
+	const FSoftObjectPath AssetPath = GetPrimaryAssetPath(InAssetID);
+	if (!AssetPath.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid asset path for: %s"), *InAssetID.ToString());
+		InLoadCompleteDelegate.ExecuteIfBound();
+		return;
+	}
+    
+	// 로드할 에셋 목록 구성
+	TArray<FSoftObjectPath> AssetsToLoad;
+	AssetsToLoad.Add(AssetPath);
+    
+	// 비동기 로딩 시작
+	LoadAssetList(AssetsToLoad, InLoadCompleteDelegate, FStreamableManager::AsyncLoadHighPriority);
+}
+
+
 void UBSAssetManager::LoadCharacterDefinition(const FPrimaryAssetId& InCharacterDefinitionId,
                                               const FStreamableDelegate& InLoadCompleteDelegate)
 {

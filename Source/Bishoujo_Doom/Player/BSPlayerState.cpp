@@ -18,6 +18,8 @@ ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
+	CharacterDefData = nullptr;
+
 	// AbilitySystemComponent needs to be updated at a high frequency.
 	SetNetUpdateFrequency(100.0f);
 
@@ -27,19 +29,9 @@ ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 void ABSPlayerState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	// UE_LOG(LogBS, Log, TEXT("ABSPlayerState::PostInitializeComponents"));
-	//
-	// check(AbilitySystemComponent);
-	// AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
-	//
-	// ABSGameState* BSGameState = GetWorld()->GetGameState<ABSGameState>();
-	// if (!BSGameState)
-	// {
-	// 	UE_LOG(LogBS, Log, TEXT("BSGameState is null in SetupDefaultCharacterForPlayer"));
-	// 	return;
-	// }
-	//
-	// SetCharacterDefData(BSGameState->GetDefaultCharacterDefinition());
+
+	check(AbilitySystemComponent);
+	AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
 }
 
 ABSPlayerController* ABSPlayerState::GetBSPlayerController() const

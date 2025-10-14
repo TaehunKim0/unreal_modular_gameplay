@@ -43,7 +43,7 @@ public:
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
-	TArray<FBSInputAction> NativeInputActions;
+	TArray<FBSInputAction>	NativeInputActions;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
 	TArray<FBSInputAction> AbilityInputActions;

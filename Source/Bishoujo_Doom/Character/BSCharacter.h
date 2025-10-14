@@ -8,15 +8,13 @@
 #include "GameFramework/Character.h"
 #include "BSCharacter.generated.h"
 
+class UBSDefaultCharacterComponent;
 class UBSDebugWidget;
 class ABSHUD;
 class UBSPawnExtensionComponent;
 class UBSAbilitySystemComponent;
 class USpringArmComponent;
 class UCameraComponent;
-class UTestComponentA;
-class UTestComponentB;
-class UTestComponentC;
 
 UCLASS()
 class BISHOUJO_DOOM_API ABSCharacter : public AModularCharacter, public IAbilitySystemInterface
@@ -24,7 +22,7 @@ class BISHOUJO_DOOM_API ABSCharacter : public AModularCharacter, public IAbility
 	GENERATED_BODY()
 
 public:
-	ABSCharacter();
+	ABSCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;
@@ -50,6 +48,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BS|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBSPawnExtensionComponent> PawnExtComponent;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BS|Character", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBSDefaultCharacterComponent> DefaultCharacterComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BS|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBSAbilitySystemComponent> AbilitySystemComponent;
 };

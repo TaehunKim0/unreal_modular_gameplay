@@ -27,6 +27,7 @@ public class Bishoujo_Doom : ModuleRules
 			"GameFeatures",
 			"ModularGameplay",
 			"ModularGameplayActors",
+			"DataRegistry"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

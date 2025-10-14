@@ -33,30 +33,29 @@ void UGameFeatureAction_AddInputContextMapping::OnGameFeatureRegistering()
 void UGameFeatureAction_AddInputContextMapping::OnGameFeatureActivating(FGameFeatureActivatingContext& Context)
 {
     Super::OnGameFeatureActivating(Context);
+
     // World 확인
-    UWorld* World = GetWorld();
-    if (!World)
+    for (const FWorldContext& WorldContext : GEngine->GetWorldContexts())
     {
-        return;
-    }
-    
-    // GameInstance도 필요하다면
-    UGameInstance* GameInstance = World->GetGameInstance();
-    if (!GameInstance)
-    {
-        return;
-    }
-    
-    // 모든 LocalPlayer에 직접 접근하는 방법
-    for (int32 PlayerIndex = 0; PlayerIndex < GameInstance->GetNumLocalPlayers(); ++PlayerIndex)
-    {
-        if (ULocalPlayer* LocalPlayer = GameInstance->GetLocalPlayerByIndex(PlayerIndex))
+        if (Context.ShouldApplyToWorldContext(WorldContext))
         {
-            AddInputMappingForPlayer(LocalPlayer);
+            if (UWorld* World = WorldContext.World())
+            {
+                for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
+                {
+                    if (APlayerController* PC = Iterator->Get())
+                    {
+                        if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
+                        {
+                            AddInputMappingForPlayer(LP);
+                        }
+                    }
+                }
+
+                UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddInputContextMapping::OnGameFeatureActivating"));
+            }
         }
     }
-
-    UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddInputContextMapping::OnGameFeatureActivating"));
 }
 
 void UGameFeatureAction_AddInputContextMapping::OnGameFeatureDeactivating(FGameFeatureDeactivatingContext& Context)
@@ -123,7 +122,11 @@ void UGameFeatureAction_AddInputContextMapping::AddInputMappingForPlayer(UPlayer
             if (UInputMappingContext* IMC = AssetManager.GetStreamableManager().LoadSynchronous<UInputMappingContext>(MappingPtr.ToSoftObjectPath()))
             {
                 // Priority 0으로 추가 (필요시 설정 가능하도록 확장 가능)
-                InputSubsystem->AddMappingContext(IMC, 0);
+                if (IsValid(LocalPlayer))
+                {
+                    InputSubsystem->AddMappingContext(IMC, 0);
+                    UE_LOG(LogBS, Log, TEXT("UGameFeatureAction_AddInputContextMapping::AddInputMappingForPlayer"));
+                }
             }
         }
     }

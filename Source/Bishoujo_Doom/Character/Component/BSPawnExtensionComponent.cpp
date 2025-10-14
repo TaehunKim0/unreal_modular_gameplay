@@ -7,6 +7,7 @@
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "Character/BSPawnData.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "GameModes/BSGameState.h"
 #include "Net/UnrealNetwork.h"
 
 const FName UBSPawnExtensionComponent::NAME_ActorFeatureName("PawnExtension");
@@ -19,7 +20,6 @@ UBSPawnExtensionComponent::UBSPawnExtensionComponent(const FObjectInitializer& O
 
 	SetIsReplicatedByDefault(true);
 
-	PawnData = nullptr;
 	AbilitySystemComponent = nullptr;
 }
 
@@ -48,6 +48,9 @@ void UBSPawnExtensionComponent::BeginPlay()
 
 	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::BeginPlay::TryToChangeInitState"));
 	ensure(TryToChangeInitState(BSGamePlayTags::InitState_Spawned));
+
+	ABSGameState* BSGameState = GetWorld()->GetGameState<ABSGameState>();
+	BSGameState->CharacterDefManagerComponent->OnCharacterDefinitionChangedDelegate.AddDynamic(this, &UBSPawnExtensionComponent::OnCharacterDefinitionChanged);
 	
 	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::BeginPlay::CheckDefaultInitialization"));
 	CheckDefaultInitialization();
@@ -64,12 +67,15 @@ void UBSPawnExtensionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason
 void UBSPawnExtensionComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
 
-	DOREPLIFETIME(UBSPawnExtensionComponent, PawnData);
+void UBSPawnExtensionComponent::OnCharacterDefinitionChanged(const UBSCharacterDefinition* InNewDefinition)
+{
+	CheckDefaultInitialization();
 }
 
 bool UBSPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState,
-	FGameplayTag DesiredState) const
+                                                   FGameplayTag DesiredState) const
 {
 	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::CanChangeInitState"));
 	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::InitState changed: %s → %s"),
@@ -87,31 +93,17 @@ bool UBSPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManage
 	}
 	if (CurrentState == BSGamePlayTags::InitState_Spawned && DesiredState == BSGamePlayTags::InitState_CharacterDefinitionLoaded)
 	{
-		// Pawn data is required.
-		if (!PawnData)
-		{
-			return false;
-		}
-
-		const bool bHasAuthority = Pawn->HasAuthority();
-		const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
-
-		if (bHasAuthority || bIsLocallyControlled)
-		{
-			// Check for being possessed by a controller.
-			if (!GetController<AController>())
-			{
-				return false;
-			}
-		}
-
 		return true;
 	}
+	
 	else if (CurrentState == BSGamePlayTags::InitState_CharacterDefinitionLoaded && DesiredState == BSGamePlayTags::InitState_CharacterInitialized)
 	{
 		// Transition to initialize if all features have their data available
+		UE_LOG(LogBSInitState, Log, TEXT("UBSPawnExtensionComponent::HaveAllFeaturesReachedInitState(InitState_CharacterDefinitionLoaded)"));
+
 		return Manager->HaveAllFeaturesReachedInitState(Pawn, BSGamePlayTags::InitState_CharacterDefinitionLoaded);
 	}
+	
 	else if (CurrentState == BSGamePlayTags::InitState_CharacterInitialized && DesiredState == BSGamePlayTags::InitState_GameplayReady)
 	{
 		return true;
@@ -142,10 +134,7 @@ void UBSPawnExtensionComponent::OnActorInitStateChanged(const FActorInitStateCha
 	// If another feature is now in DataAvailable, see if we should transition to DataInitialized
 	if (Params.FeatureName != NAME_ActorFeatureName)
 	{
-		if (Params.FeatureState == BSGamePlayTags::InitState_CharacterDefinitionLoaded)
-		{
-			CheckDefaultInitialization();
-		}
+		CheckDefaultInitialization();
 	}
 }
 
@@ -159,34 +148,6 @@ void UBSPawnExtensionComponent::CheckDefaultInitialization()
 
 	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned, BSGamePlayTags::InitState_CharacterDefinitionLoaded, BSGamePlayTags::InitState_CharacterInitialized, BSGamePlayTags::InitState_GameplayReady };
 	ContinueInitStateChain(StateChain);
-}
-
-void UBSPawnExtensionComponent::SetPawnData(const UBSPawnData* InPawnData)
-{
-	check(InPawnData);
-
-	APawn* Pawn = GetPawnChecked<APawn>();
-
-	if (Pawn->GetLocalRole() != ROLE_Authority)
-	{
-		return;
-	}
-
-	if (PawnData)
-	{
-		return;
-	}
-
-	PawnData = InPawnData;
-
-	Pawn->ForceNetUpdate();
-
-	CheckDefaultInitialization();
-}
-
-void UBSPawnExtensionComponent::OnRep_PawnData()
-{
-	CheckDefaultInitialization();
 }
 
 void UBSPawnExtensionComponent::InitializeAbilitySystem(UBSAbilitySystemComponent* InASC, AActor* InOwnerActor)
@@ -223,11 +184,6 @@ void UBSPawnExtensionComponent::InitializeAbilitySystem(UBSAbilitySystemComponen
 
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
-
-	if (ensure(PawnData))
-	{
-		//InASC->SetTagRelationshipMapping(PawnData->TagRelationshipMapping);
-	}
 
 	//OnAbilitySystemInitialized.Broadcast();
 }

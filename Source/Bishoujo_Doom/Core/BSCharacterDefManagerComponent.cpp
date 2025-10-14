@@ -79,6 +79,13 @@ void UBSCharacterDefManagerComponent::ApplyPawnData(const ABSPlayerState* InPlay
 	}
 	
 	Controller->Possess(NewPawn);
+
+	if (!IsValid(NewPawn->GetPlayerState()))
+	{
+		UE_LOG(LogBS, Error, TEXT("UBSCharacterDefManagerComponent::NewPawn GetPlayerState is failed"));
+	}
+	
+	
 	UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::ApplyPawnData: Successfully spawned and possessed new Pawn: %s"), *NewPawn->GetName());
 }
 
@@ -177,10 +184,7 @@ void UBSCharacterDefManagerComponent::ApplyCharacterDefinition(ABSPlayerState* I
 {
 	if (!NewCharacterDef) return;
 
-	ApplyPawnData(InPlayerState, NewCharacterDef);
-	
-	ApplyAbilitySets(InPlayerState, NewCharacterDef);
-
+	//ApplyPawnData(InPlayerState, NewCharacterDef);
 	CollectGameFeaturePluginURL(NewCharacterDef->GameFeaturesToEnable);
 	EnableGameFeatures(InPlayerState, GameFeaturePluginURLs, NewCharacterDef);
 }
@@ -239,17 +243,6 @@ void UBSCharacterDefManagerComponent::DisableAllGameFeatures()
 		UE_LOG(LogBS, Log, TEXT("Disabling GameFeature: %s"), *FeatureName);
 		UGameFeaturesSubsystem& GameFeatureSubsystem = UGameFeaturesSubsystem::Get();
 		GameFeatureSubsystem.DeactivateGameFeaturePlugin(FeatureName);
-	}
-}
-
-void UBSCharacterDefManagerComponent::ApplyAbilitySets(ABSPlayerState* InPlayerState, const UBSCharacterDefinition* InCharacterDef)
-{
-	for (const UBSAbilitySet* AbilitySet : InCharacterDef->AbilitySets)
-	{
-		if (AbilitySet)
-		{
-			AbilitySet->GiveToAbilitySystem(InPlayerState->GetBSAbilitySystemComponent(), nullptr);
-		}
 	}
 }
 

@@ -65,15 +65,7 @@ class BISHOUJO_DOOM_API UBSAbilitySet : public UPrimaryDataAsset
 public:
 	UBSAbilitySet(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	void GiveToAbilitySystem(UBSAbilitySystemComponent* LyraASC, UObject* SourceObject = nullptr) const;
-
-protected:
+public:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities", meta=(TitleProperty=Ability))
-	TArray<FBSAbilitySet_GameplayAbility> GrantedGameplayAbilitiesWithTag;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects", meta=(TitleProperty=GameplayEffect))
-	TArray<FBSAbilitySet_GameplayEffect> GrantedGameplayEffects;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attribute Sets", meta=(TitleProperty=AttributeSet))
-	TArray<FBSAbilitySet_AttributeSet> GrantedAttributes;
+	TArray<FBSAbilitySet_GameplayAbility> GrantedGameplayAbilitiesWithInputTag;
 };

@@ -4,28 +4,23 @@
 #include "BSCharacter.h"
 
 #include "BSLogChannels.h"
-#include "GameFeaturesSubsystem.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Component/BSCharacterMovementComponent.h"
+#include "Component/BSDefaultCharacterComponent.h"
 #include "Component/BSPawnExtensionComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "GameModes/BSGameState.h"
-#include "TestComponent/TestComponentA.h"
-#include "TestComponent/TestComponentB.h"
-#include "TestComponent/TestComponentC.h"
-#include "UI/BSHUD.h"
-#include "UI/Debug/BSDebugWidget.h"
+#include "Player/BSPlayerState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
 
 // Sets default values
-ABSCharacter::ABSCharacter()
+ABSCharacter::ABSCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBSCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// 캐릭터 충돌 캡슐 크기 설정
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	// 컨트롤러가 회전할 때 캐릭터가 같이 회전하지 않도록 설정
@@ -33,15 +28,10 @@ ABSCharacter::ABSCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	DefaultCharacterComponent = CreateDefaultSubobject<UBSDefaultCharacterComponent>(TEXT("DefaultCharacterComponent"));
 	PawnExtComponent = CreateDefaultSubobject<UBSPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 	//PawnExtComponent->OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
 	//PawnExtComponent->OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemUninitialized));
-
-	// 캐릭터 이동 설정
-	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 이동 방향으로 회전
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // 회전 속도
-	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->AirControl = 0.2f;
 
 	// 카메라 붐 생성 (캐릭터 뒤에서 카메라를 당겨옴)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -53,7 +43,6 @@ ABSCharacter::ABSCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false; // 카메라는 붐에 대해 상대적으로 회전하지 않음
-	
 }
 
 void ABSCharacter::PreInitializeComponents()
@@ -66,6 +55,16 @@ void ABSCharacter::PreInitializeComponents()
 void ABSCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+	
+	const auto BSPlayerState = Cast<ABSPlayerState>(GetPlayerState());
+	if (!IsValid(BSPlayerState))
+	{
+		UE_LOG(LogBS, Error, TEXT("ABSCharacter::BSPlayerState is not valid"));
+		return;
+	}
+
+	AbilitySystemComponent = BSPlayerState->GetBSAbilitySystemComponent();
+	AbilitySystemComponent->InitAbilityActorInfo(BSPlayerState, this);
 
 	UE_LOG(LogBS, Log, TEXT("ABSCharacter::PossessedBy"));
 }
@@ -75,22 +74,28 @@ void ABSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	{
-	}
-
 	UE_LOG(LogBS, Log, TEXT("ABSCharacter::BeginPlay"));
 }
 
 void ABSCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+
+	UE_LOG(LogBS, Log, TEXT("ABSCharacter::EndPlay"));
 }
 
 // Called every frame
 void ABSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	auto Result = GetBSAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Action.Jump"));
+	FString ResultString = Result ? TEXT("True") : TEXT("False");
+
+	FString IsGroundedString = GetMovementComponent()->IsMovingOnGround() ? TEXT("True") : TEXT("False");
+	
+	UBSPlayerUISubSystem::Get(this)->ShowDebugMessage(TEXT("Ability.Jump"), ResultString);
+	UBSPlayerUISubSystem::Get(this)->ShowDebugMessage(TEXT("Grounded"), IsGroundedString);
 }
 
 UBSAbilitySystemComponent* ABSCharacter::GetBSAbilitySystemComponent() const

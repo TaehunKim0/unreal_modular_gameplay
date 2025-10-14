@@ -27,4 +27,5 @@ public:
 
 protected:
 	virtual void InitializeComponent() override;
+	void ApplyMovementSettings();
 };
