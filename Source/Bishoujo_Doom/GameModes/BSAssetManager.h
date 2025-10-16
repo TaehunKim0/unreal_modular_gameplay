@@ -25,9 +25,10 @@ public:
 	void LoadAsset(const FPrimaryAssetId& InCharacterDefinitionId,
 								const FStreamableDelegate& InLoadCompleteDelegate);
     
-	// 캐릭터 관련
 	void LoadCharacterDefinition(const FPrimaryAssetId& InCharacterDefinitionId,
 								const FStreamableDelegate& InLoadCompleteDelegate);
+
+	UBSCharacterDefinition* LoadCharacterDefinitionSynchronously(const FPrimaryAssetId& InCharacterDefinitionId);
 
 private:
 	FOnBSCharacterLoaded OnCharacterLoaded;

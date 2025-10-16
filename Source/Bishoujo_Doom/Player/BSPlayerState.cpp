@@ -9,6 +9,7 @@
 #include "AbilitySystem/BSAbilitySet.h"
 #include "Character/BSPawnData.h"
 #include "Core/BSCharacterDefinition.h"
+#include "GameModes/BSAssetManager.h"
 #include "GameModes/BSGameState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
 
@@ -22,7 +23,7 @@ ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 
 	// AbilitySystemComponent needs to be updated at a high frequency.
 	SetNetUpdateFrequency(100.0f);
-
+	
 	UE_LOG(LogBS, Log, TEXT("ABSPlayerState::ABSPlayerState"));
 }
 
@@ -32,6 +33,10 @@ void ABSPlayerState::PostInitializeComponents()
 
 	check(AbilitySystemComponent);
 	AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
+
+	const FPrimaryAssetId DefaultCharacterDefID("Character", "Default");
+	auto NewCharacterDef = UBSAssetManager::Get().LoadCharacterDefinitionSynchronously(DefaultCharacterDefID);
+	CharacterDefData = NewCharacterDef;
 }
 
 ABSPlayerController* ABSPlayerState::GetBSPlayerController() const

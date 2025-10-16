@@ -7,6 +7,31 @@
 #include "GameFeatureAction_AddInputContextMapping.generated.h"
 
 class UInputMappingContext;
+
+USTRUCT()
+struct FInputMappingSet
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category="InputContextMapping", meta=(AssetBundles="Client,Server"))
+	TSoftObjectPtr<UInputMappingContext> InputMappingContext;
+
+	UPROPERTY(EditAnywhere, Category="InputContextMapping")
+	uint8 Priority = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FGameFeatureInputContextMappingEntry
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category="InputContextMapping")
+	TSoftClassPtr<AActor> TargetActorClass;
+
+	UPROPERTY(EditAnywhere, Category="InputContextMapping")
+	TArray<FInputMappingSet> GrantInputMappingArray;
+};
+
 /**
  * 
  */
@@ -22,10 +47,14 @@ public:
 	virtual void OnGameFeatureDeactivating(FGameFeatureDeactivatingContext& Context) override;
 	virtual void OnGameFeatureUnregistering() override;
 	//~End of UGameFeatureAction interface
-	
-	UPROPERTY(EditAnywhere, Category="Input")
-	TArray<TSoftObjectPtr<UInputMappingContext>> InputMappings;
 
-	void AddInputMappingForPlayer(UPlayer* Player);
-	void RemoveInputMapping(APlayerController* PlayerController);
+public:
+	void AddInputMappingForPlayer(APawn* InPawn);
+	void RemoveInputMapping(APawn* InPawn);
+
+protected:
+	UPROPERTY(EditAnywhere, Category="InputContextMapping")
+	FGameFeatureInputContextMappingEntry InputMapping;
+
+	TMap<APawn*, TArray<UInputMappingContext*>> AddedInputMappingMap;
 };

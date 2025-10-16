@@ -7,6 +7,7 @@
 #include "BSLogChannels.h"
 #include "EngineUtils.h"
 #include "GameFeaturesSubsystem.h"
+#include "Character/BSCharacter.h"
 
 void UGameFeatureAction_AddAttributes::OnGameFeatureActivating(FGameFeatureActivatingContext& Context)
 {
@@ -18,7 +19,6 @@ void UGameFeatureAction_AddAttributes::OnGameFeatureActivating(FGameFeatureActiv
         {
             if (UWorld* World = WorldContext.World())
             {
-                // 모든 Pawn을 순회 (플레이어와 적 Pawn 포함)
                 for (TActorIterator<APawn> It(World); It; ++It)
                 {
                     APawn* Pawn = *It;
@@ -27,7 +27,11 @@ void UGameFeatureAction_AddAttributes::OnGameFeatureActivating(FGameFeatureActiv
                         continue;
                     }
 
-                    // AttributesList의 각 엔트리에 대해 처리
+                    if (!Pawn->IsLocallyControlled())
+                    {
+                        continue;
+                    }
+
                     for (const auto& AttributesEntry : AttributesArray)
                     {
                         if (UClass* TargetActorClass = AttributesEntry.TargetActorClass.LoadSynchronous())
@@ -58,6 +62,13 @@ void UGameFeatureAction_AddAttributes::OnGameFeatureDeactivating(FGameFeatureDea
 
         if (IsValid(It->Key))
         {
+            ABSCharacter* BSCharacter = Cast<ABSCharacter>(It->Key);
+            if (!BSCharacter || !BSCharacter->GetAbilitySystemComponent())
+            {
+                AddedAttributesMap.Remove(It->Key);
+                continue;
+            }
+            
             if (AActor* Actor = It->Key)
             {
                 RemoveActorAttributes(Actor);
@@ -107,23 +118,24 @@ void UGameFeatureAction_AddAttributes::RemoveActorAttributes(const AActor* InAct
         return;
     }
 
-    if (UAbilitySystemComponent* AbilitySystemComponent = InActor->FindComponentByClass<UAbilitySystemComponent>())
+    UAbilitySystemComponent* AbilitySystemComponent = InActor->FindComponentByClass<UAbilitySystemComponent>();
+    if (!AbilitySystemComponent)
     {
-        if (TArray<UAttributeSet*>* ActorAttributes = AddedAttributesMap.Find(InActor))
-        {
-            for (UAttributeSet* AttributeSet : *ActorAttributes)
-            {
-                if (AttributeSet)
-                {
-                    AbilitySystemComponent->RemoveSpawnedAttribute(AttributeSet);
-                }
-            }
-            
-            AddedAttributesMap.Remove(InActor);
-        }
+        UE_LOG(LogBS, Error, TEXT("RemoveActorAbilities::액터 %s에게 ASC 가 없음"), *InActor->GetName());
+        return;
     }
-    else
+    
+    if (TArray<UAttributeSet*>* ActorAttributes = AddedAttributesMap.Find(InActor))
     {
-        UE_LOG(LogTemp, Warning, TEXT("UGameFeatureAction_AddAttributes::Attribute Set 제거 시 액터 %s에 AbilitySystemComponent가 없습니다."), *InActor->GetName());
+        for (UAttributeSet* AttributeSet : *ActorAttributes)
+        {
+            if (AttributeSet)
+            {
+                AbilitySystemComponent->RemoveSpawnedAttribute(AttributeSet);
+                UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAttributes::액터 %s 의 어트리뷰트 %s 제거 완료"), *InActor->GetName(), *AttributeSet->GetName());
+            }
+        }
+        
+        AddedAttributesMap.Remove(InActor);
     }
 }

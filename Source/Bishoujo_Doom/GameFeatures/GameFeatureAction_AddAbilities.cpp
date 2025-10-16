@@ -28,6 +28,11 @@ void UGameFeatureAction_AddAbilities::OnGameFeatureActivating(FGameFeatureActiva
 						continue;
 					}
 
+					if (!Pawn->IsLocallyControlled())
+					{
+						continue;
+					}
+
 					for (const auto& AbilitiyEntry : AbilitiesArray)
 					{
 						if (UClass* TargetActorClass = AbilitiyEntry.TargetActorClass.LoadSynchronous())
@@ -56,13 +61,17 @@ void UGameFeatureAction_AddAbilities::OnGameFeatureDeactivating(FGameFeatureDeac
 	{
 		auto It = AddedAbilitiesMap.CreateIterator();
         
-		if (IsValid(It->Key))
+		if (IsValid(It->Key) && It->Key->IsValidLowLevel())
 		{
-			if (AActor* Actor = It->Key)
+			ABSCharacter* BSCharacter = Cast<ABSCharacter>(It->Key);
+			if (BSCharacter && BSCharacter->GetAbilitySystemComponent())
 			{
-				RemoveActorAbilities(Actor);
+				RemoveActorAbilities(BSCharacter);
+				continue;
 			}
 		}
+		
+		It.RemoveCurrent();
 	}
     
 	AddedAbilitiesMap.Reset();
@@ -89,7 +98,7 @@ void UGameFeatureAction_AddAbilities::AddActorAbilities(AActor* InActor, const F
 		return;
 	}
 
-	auto ActorAbilities = AddedAbilitiesMap.FindOrAdd(InActor);
+	TArray<FGameplayAbilitySpecHandle>& AbilitySpecHandles = AddedAbilitiesMap.FindOrAdd(InActor);
 	for (auto AbilitySet : InAbilitiesEntry.GrantAbilitySets)
 	{
 		const UBSAbilitySet* LoadAbilitySet = AbilitySet.LoadSynchronous();
@@ -104,8 +113,8 @@ void UGameFeatureAction_AddAbilities::AddActorAbilities(AActor* InActor, const F
 
 				if (AbilityHandle.IsValid())
 				{
-					ActorAbilities.Add(AbilityHandle);
-					UE_LOG(LogBS, Log, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 어빌리티 %s 부여 성공"), *InActor->GetName(), *GrantAbility.Ability->GetName());
+					AbilitySpecHandles.Add(AbilityHandle);
+					UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 어빌리티 %s 부여 성공"), *InActor->GetName(), *GrantAbility.Ability->GetName());
 				}
 				else
 				{
@@ -131,19 +140,21 @@ void UGameFeatureAction_AddAbilities::RemoveActorAbilities(AActor* InActor)
 	}
 
 	UAbilitySystemComponent* ASC = BSCharacter->GetAbilitySystemComponent();
+	check(ASC);
 	if (!ASC)
 	{
 		UE_LOG(LogBS, Error, TEXT("RemoveActorAbilities::액터 %s에게 ASC 가 없음"), *InActor->GetName());
 		return;
 	}
 	
-	if (const auto ActorAbilities = AddedAbilitiesMap.Find(InActor))
+	if (const auto ActorAbilitieHandles = AddedAbilitiesMap.Find(InActor))
 	{
-		for (const auto AbilityHandle : *ActorAbilities)
+		for (const FGameplayAbilitySpecHandle AbilityHandle : *ActorAbilitieHandles)
 		{
 			if (AbilityHandle.IsValid())
 			{
 				ASC->ClearAbility(AbilityHandle);
+				UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAbilities::액터 %s 의 어빌리티 핸들 %s 제거 완료"), *InActor->GetName(), *AbilityHandle.ToString());
 			}
 		}
 

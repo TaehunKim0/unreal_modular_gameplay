@@ -39,7 +39,6 @@ void UBSAssetManager::LoadAsset(const FPrimaryAssetId& InAssetID,
 	LoadAssetList(AssetsToLoad, InLoadCompleteDelegate, FStreamableManager::AsyncLoadHighPriority);
 }
 
-
 void UBSAssetManager::LoadCharacterDefinition(const FPrimaryAssetId& InCharacterDefinitionId,
                                               const FStreamableDelegate& InLoadCompleteDelegate)
 {
@@ -58,4 +57,17 @@ void UBSAssetManager::LoadCharacterDefinition(const FPrimaryAssetId& InCharacter
     
 	// 비동기 로딩 시작
 	LoadAssetList(AssetsToLoad, InLoadCompleteDelegate, FStreamableManager::AsyncLoadHighPriority);
+}
+
+UBSCharacterDefinition* UBSAssetManager::LoadCharacterDefinitionSynchronously(const FPrimaryAssetId& InCharacterDefinitionId)
+{
+	const FSoftObjectPath AssetPath = GetPrimaryAssetPath(InCharacterDefinitionId);
+	if (!AssetPath.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid asset path for: %s"), *InCharacterDefinitionId.ToString());
+		return nullptr;
+	}
+
+	auto Result = GetStreamableManager().LoadSynchronous(AssetPath);
+	return Cast<UBSCharacterDefinition>(Result);
 }

@@ -6,8 +6,10 @@
 #include "Components/PawnComponent.h"
 #include "Components/GameFrameworkInitStateInterface.h"
 #include "Core/BSCharacterDefinition.h"
+#include "UI/Debug/BSDebugWidget.h"
 #include "BSDefaultCharacterComponent.generated.h"
 
+class UBSInputSet;
 struct FInputActionValue;
 struct FGameplayTag;
 class UInputMappingContext;
@@ -39,6 +41,10 @@ public:
 	virtual void InitializePlayerInput(UInputComponent* PlayerInputComponent);
 	UFUNCTION()
 	void OnCharacterDefinitionChanged(const UBSCharacterDefinition* NewDefinition);
+
+public:
+	void AddAdditionalBindAction(const UBSInputSet* InInputSet, TArray<uint32>& OutBindHandles);
+	void RemoveAdditionalBindAction(const uint32 InBindHandle);
 	
 public:
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
@@ -47,9 +53,6 @@ public:
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 	void Input_LookStick(const FInputActionValue& InputActionValue);
-
-	UPROPERTY(EditAnywhere, Category="Input", meta=(AssetBundles="Client,Server"))
-	TSoftObjectPtr<UInputMappingContext> InputMappingContext;
 
 private:
 	static const FName NAME_DEFAULTCHARACTERCOMPONENT;

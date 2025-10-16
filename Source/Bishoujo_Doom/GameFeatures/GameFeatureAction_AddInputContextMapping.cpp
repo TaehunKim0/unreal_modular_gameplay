@@ -1,6 +1,7 @@
 #include "GameFeatures/GameFeatureAction_AddInputContextMapping.h"
 
 #include "BSLogChannels.h"
+#include "EngineUtils.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/AssetManager.h"
@@ -12,47 +13,43 @@
 void UGameFeatureAction_AddInputContextMapping::OnGameFeatureRegistering()
 {
     Super::OnGameFeatureRegistering();
-
-    // AssetManager를 통해 InputMappingContext 에셋 로드 시작
-    UAssetManager& AssetManager = UAssetManager::Get();
-    
-    for (const TSoftObjectPtr<UInputMappingContext>& MappingPtr : InputMappings)
-    {
-        if (!MappingPtr.IsNull())
-        {
-            // 비동기 로드 요청 (더 효율적)
-            AssetManager.GetStreamableManager().RequestAsyncLoad(
-                MappingPtr.ToSoftObjectPath(),
-                FStreamableDelegate(),
-                FStreamableManager::AsyncLoadHighPriority
-            );
-        }
-    }
 }
 
 void UGameFeatureAction_AddInputContextMapping::OnGameFeatureActivating(FGameFeatureActivatingContext& Context)
 {
     Super::OnGameFeatureActivating(Context);
 
-    // World 확인
     for (const FWorldContext& WorldContext : GEngine->GetWorldContexts())
     {
         if (Context.ShouldApplyToWorldContext(WorldContext))
         {
             if (UWorld* World = WorldContext.World())
             {
-                for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
+                for (TActorIterator<APawn> It(World); It; ++It)
                 {
-                    if (APlayerController* PC = Iterator->Get())
+                    APawn* Pawn = *It;
+                    if (!IsValid(Pawn))
                     {
-                        if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
+                        continue;
+                    }
+
+                    if (!Pawn->IsLocallyControlled())
+                    {
+                        continue;
+                    }
+                    
+                    if (UClass* TargetActorClass = InputMapping.TargetActorClass.LoadSynchronous())
+                    {
+                        if (Pawn->IsA(TargetActorClass))
                         {
-                            AddInputMappingForPlayer(LP);
+                            AddInputMappingForPlayer(Pawn);
                         }
                     }
+                    else
+                    {
+                        UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddInputContextMapping:: 적용 중 타겟 액터 클래스 로드 실패: %s"), *InputMapping.TargetActorClass.ToString());
+                    }
                 }
-
-                UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddInputContextMapping::OnGameFeatureActivating"));
             }
         }
     }
@@ -61,45 +58,40 @@ void UGameFeatureAction_AddInputContextMapping::OnGameFeatureActivating(FGameFea
 void UGameFeatureAction_AddInputContextMapping::OnGameFeatureDeactivating(FGameFeatureDeactivatingContext& Context)
 {
     Super::OnGameFeatureDeactivating(Context);
-    
-    // 모든 활성 플레이어에서 Input Mapping 제거
-    if (UWorld* World = GetWorld())
+
+    while (!AddedInputMappingMap.IsEmpty())
     {
-        for (FConstPlayerControllerIterator PCIterator = World->GetPlayerControllerIterator(); PCIterator; ++PCIterator)
+        auto It = AddedInputMappingMap.CreateIterator();
+
+        if (IsValid(It->Key) && It->Key->IsValidLowLevel())
         {
-            if (APlayerController* PC = PCIterator->Get())
+            if (Cast<APlayerController>(It->Key->GetController()))
             {
-                RemoveInputMapping(PC);
+                RemoveInputMapping(It->Key);
+                continue;
             }
         }
+        
+        It.RemoveCurrent();
     }
+    
+    AddedInputMappingMap.Reset();
 }
 
 void UGameFeatureAction_AddInputContextMapping::OnGameFeatureUnregistering()
 {
     Super::OnGameFeatureUnregistering();
-    
-    // AssetManager를 통해 리소스 해제
-    UAssetManager& AssetManager = UAssetManager::Get();
-    
-    for (const TSoftObjectPtr<UInputMappingContext>& MappingPtr : InputMappings)
-    {
-        if (!MappingPtr.IsNull())
-        {
-            // 스트리밍 핸들 해제 (메모리 정리)
-            AssetManager.GetStreamableManager().Unload(MappingPtr.ToSoftObjectPath());
-        }
-    }
 }
 
-void UGameFeatureAction_AddInputContextMapping::AddInputMappingForPlayer(UPlayer* Player)
+void UGameFeatureAction_AddInputContextMapping::AddInputMappingForPlayer(APawn* InPawn)
 {
-    if (!Player)
+    APlayerController* PC = Cast<APlayerController>(InPawn->GetController());
+    if (!PC)
     {
         return;
     }
     
-    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PC->GetLocalPlayer());
     if (!LocalPlayer)
     {
         return;
@@ -110,36 +102,30 @@ void UGameFeatureAction_AddInputContextMapping::AddInputMappingForPlayer(UPlayer
     {
         return;
     }
-    
-    UAssetManager& AssetManager = UAssetManager::Get();
-    
-    // 모든 InputMappingContext를 추가
-    for (const TSoftObjectPtr<UInputMappingContext>& MappingPtr : InputMappings)
+
+    TArray<UInputMappingContext*>& InputMappingContextArray = AddedInputMappingMap.FindOrAdd(InPawn);
+    for (FInputMappingSet InputMappingSet : InputMapping.GrantInputMappingArray)
     {
-        if (!MappingPtr.IsNull())
+        if (IsValid(LocalPlayer))
         {
-            // AssetManager를 통해 에셋 가져오기
-            if (UInputMappingContext* IMC = AssetManager.GetStreamableManager().LoadSynchronous<UInputMappingContext>(MappingPtr.ToSoftObjectPath()))
-            {
-                // Priority 0으로 추가 (필요시 설정 가능하도록 확장 가능)
-                if (IsValid(LocalPlayer))
-                {
-                    InputSubsystem->AddMappingContext(IMC, 0);
-                    UE_LOG(LogBS, Log, TEXT("UGameFeatureAction_AddInputContextMapping::AddInputMappingForPlayer"));
-                }
-            }
+            UInputMappingContext* AddIMC = InputMappingSet.InputMappingContext.LoadSynchronous();
+            InputSubsystem->AddMappingContext(AddIMC, InputMappingSet.Priority);
+            InputMappingContextArray.Add(AddIMC);
+            
+            UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddInputContextMapping::InputMappingContext %s 부여 성공"), *AddIMC->GetName());
         }
     }
 }
 
-void UGameFeatureAction_AddInputContextMapping::RemoveInputMapping(APlayerController* PlayerController)
+void UGameFeatureAction_AddInputContextMapping::RemoveInputMapping(APawn* InPawn)
 {
-    if (!PlayerController)
+    APlayerController* PC = Cast<APlayerController>(InPawn->GetController());
+    if (!PC)
     {
         return;
     }
     
-    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PlayerController->GetLocalPlayer());
+    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PC->GetLocalPlayer());
     if (!LocalPlayer)
     {
         return;
@@ -150,19 +136,13 @@ void UGameFeatureAction_AddInputContextMapping::RemoveInputMapping(APlayerContro
     {
         return;
     }
-    
-    UAssetManager& AssetManager = UAssetManager::Get();
-    
-    // 모든 InputMappingContext를 제거
-    for (const TSoftObjectPtr<UInputMappingContext>& MappingPtr : InputMappings)
+
+    TArray<UInputMappingContext*>& InputMappingContextArray = *AddedInputMappingMap.Find(InPawn);
+    for (const UInputMappingContext* InputMappingContext : InputMappingContextArray)
     {
-        if (!MappingPtr.IsNull())
-        {
-            // AssetManager를 통해 에셋 가져오기
-            if (UInputMappingContext* IMC = AssetManager.GetStreamableManager().LoadSynchronous<UInputMappingContext>(MappingPtr.ToSoftObjectPath()))
-            {
-                InputSubsystem->RemoveMappingContext(IMC);
-            }
-        }
+        InputSubsystem->RemoveMappingContext(InputMappingContext);
+        UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddInputContextMapping::액터 %s 의 IMC %s 제거 완료"), *InPawn->GetName(), *InputMappingContext->GetName());
     }
+    
+    AddedInputMappingMap.Remove(InPawn);
 }

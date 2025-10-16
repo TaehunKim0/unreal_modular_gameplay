@@ -7,9 +7,6 @@ UBSInputComponent::UBSInputComponent(const FObjectInitializer& ObjectInitializer
 {
 }
 
-
-
-
 void UBSInputComponent::RemoveBinds(TArray<uint32>& BindHandles)
 {
     for (uint32 Handle : BindHandles)

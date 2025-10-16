@@ -61,7 +61,7 @@ UUserWidget* UBSPlayerUISubSystem::GetWidgetByCategory(EUICategory InCategory) c
 	return nullptr;
 }
 
-void UBSPlayerUISubSystem::ShowDebugMessage(const FString& InVariableName, const FString& InDesc) const
+void UBSPlayerUISubSystem::ShowDebugMessage(const FString& InVariableName, const FString& InDesc)
 {
 	if (UUserWidget* Widget = GetWidgetByCategory(Debug))
 	{
@@ -74,10 +74,22 @@ void UBSPlayerUISubSystem::ShowDebugMessage(const FString& InVariableName, const
 			UE_LOG(LogBS, Error, TEXT("UBSPlayerUISubSystem::DebugWidget is Null"));
 		}
 	}
-	else
-	{
-		UE_LOG(LogBS, Error, TEXT("UBSPlayerUISubSystem::Widget is Null"));
-	}
+}
+
+void UBSPlayerUISubSystem::SetUIInputModeOnly(UUserWidget* InFocusWidget, APlayerController* InPlayerController)
+{
+	FInputModeUIOnly InputModeUI;
+	InputModeUI.SetWidgetToFocus(InFocusWidget->TakeWidget());
+	InputModeUI.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InPlayerController->SetInputMode(InputModeUI);
+	InPlayerController->bShowMouseCursor = true;
+}
+
+void UBSPlayerUISubSystem::SetGameInputModeOnly(APlayerController* InPlayerController)
+{
+	FInputModeGameOnly InputModeGameOnly;
+	InPlayerController->SetInputMode(InputModeGameOnly);
+	InPlayerController->bShowMouseCursor = false;
 }
 
 void UBSPlayerUISubSystem::RemoveAllWidgets()
@@ -93,6 +105,12 @@ void UBSPlayerUISubSystem::RemoveAllWidgets()
 	ActiveWidgetMap.Empty();
 }
 
+
+UUserWidget* UBSPlayerUISubSystem::K2_CreateWidget_Implementation(TSubclassOf<UUserWidget> InWidgetClass,
+	EUICategory InCategory, APlayerController* InPlayerController)
+{
+	return CreateWidget<UUserWidget>(InWidgetClass, InCategory, InPlayerController);
+}
 
 UBSPlayerUISubSystem* UBSPlayerUISubSystem::Get(const UObject* WorldContext)
 {

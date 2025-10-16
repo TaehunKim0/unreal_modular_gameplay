@@ -27,19 +27,6 @@ void ABSPlayerController::PostInitializeComponents()
 void ABSPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (auto GameState = Cast<ABSGameState>(GetWorld()->GetGameState()))
-	{
-		UE_LOG(LogBS, Log, TEXT("ABSPlayerController::CreateWidget"));
-		auto Widget = UBSPlayerUISubSystem::Get(this)->CreateWidget(GameState->CharacterSelectionWidgetClass,
-			EUICategory::CharacterSelection, this);
-		
-		// FInputModeUIOnly InputModeUI;
-		// InputModeUI.SetWidgetToFocus(Widget->TakeWidget());
-		// InputModeUI.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		// SetInputMode(InputModeUI);
-		// bShowMouseCursor = true;
-	}
 }
 
 void ABSPlayerController::ProcessPlayerInput(const float DeltaTime, const bool bGamePaused)

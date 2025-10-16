@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BSInputConfig.h"
+#include "BSInputSet.h"
 #include "BSLogChannels.h"
 
-const UInputAction* UBSInputConfig::FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
+const UInputAction* UBSInputSet::FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {
 	for (const FBSInputAction& Action : NativeInputActions)
 	{
@@ -22,7 +22,7 @@ const UInputAction* UBSInputConfig::FindNativeInputActionForTag(const FGameplayT
 	return nullptr;
 }
 
-const UInputAction* UBSInputConfig::FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
+const UInputAction* UBSInputSet::FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {
 	for (const FBSInputAction& Action : AbilityInputActions)
 	{

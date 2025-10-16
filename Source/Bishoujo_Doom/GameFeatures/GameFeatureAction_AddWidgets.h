@@ -6,6 +6,7 @@
 #include "GameFeatureAction.h"
 #include "GameFeaturesSubsystem.h"
 #include "GameplayTagContainer.h"
+#include "UI/SubSystem/BSPlayerUISubSystem.h"
 #include "GameFeatureAction_AddWidgets.generated.h"
 
 enum EUICategory : uint8;
@@ -17,18 +18,15 @@ struct FGameFeatureWidgetEntry
 {
 	GENERATED_BODY()
 
-	// Widget class to add
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 	TSoftClassPtr<UUserWidget> WidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
-	TEnumAsByte<EUICategory> WidgetCategory;
+	TEnumAsByte<EUICategory> WidgetCategory = EUICategory::None;
 
-	// HUD slot name where to add the widget
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 	FGameplayTag SlotTag;
 
-	// Z-order for the widget
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 	int32 ZOrder = 0;
 

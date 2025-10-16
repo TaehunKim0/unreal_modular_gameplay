@@ -5,7 +5,7 @@
 
 #include "Core/BSCharacterDefinition.h"
 #include "GameModes/BSGameState.h"
-#include "Player/BSPlayerState.h"
+#include "GameFramework/PlayerState.h"
 #include "SubSystem/BSPlayerUISubSystem.h"
 
 void UBSCharacterSelectionWidget::NativeConstruct()
@@ -16,6 +16,14 @@ void UBSCharacterSelectionWidget::NativeConstruct()
 	JoelButton->OnPressed.AddDynamic(this, &UBSCharacterSelectionWidget::OnJoelButtonPressed);
 }
 
+void UBSCharacterSelectionWidget::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	EllieButton->OnPressed.Clear();
+	JoelButton->OnPressed.Clear();
+}
+
 void UBSCharacterSelectionWidget::OnEllieButtonPressed()
 {
 	FGameplayTag CharacterTag = FGameplayTag::RequestGameplayTag(FName("Character.Ellie"));
@@ -24,15 +32,17 @@ void UBSCharacterSelectionWidget::OnEllieButtonPressed()
 
 void UBSCharacterSelectionWidget::OnJoelButtonPressed()
 {
-	FGameplayTag CharacterTag = FGameplayTag::RequestGameplayTag(FName("Character.Joel"));
+	FGameplayTag CharacterTag = FGameplayTag::RequestGameplayTag(FName("Character.Default"));
 	SetCharacterDefinition(CharacterTag);
 }
 
 void UBSCharacterSelectionWidget::SetCharacterDefinition(FGameplayTag InTag)
 {
+	UBSPlayerUISubSystem::Get(GetWorld())->SetGameInputModeOnly(GetPlayerContext().GetPlayerController());
+	
 	if (const ABSGameState* GameState = Cast<ABSGameState>(GetWorld()->GetGameState()))
 	{
 		GameState->CharacterDefManagerComponent->SetCharacterDefinition(GetOwningPlayerState(), InTag);
-		RemoveFromParent();
+		UBSPlayerUISubSystem::Get(GetWorld())->RemoveWidget(CharacterSelection);
 	}
 }

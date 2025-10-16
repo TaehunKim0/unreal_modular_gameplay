@@ -31,8 +31,6 @@ void UGA_Movement_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		const auto JumpingTask = UAbilityTask_StartAbilityState::StartAbilityState(this, "Jumping", true);
 		JumpingTask->OnStateEnded.AddDynamic(this, &UGA_Movement_Jump::StopJumping);
 		JumpingTask->OnStateInterrupted.AddDynamic(this, &UGA_Movement_Jump::StopJumping);
-		
-		Character->LandedDelegate.AddDynamic(this, &UGA_Movement_Jump::OnLanded);
 	}
 
 	UE_LOG(LogBS, Log, TEXT("UGA_Movement_Jump::ActivateAbility"));
@@ -76,9 +74,4 @@ void UGA_Movement_Jump::StopJumping()
 
 		UE_LOG(LogBS, Log, TEXT("UGA_Movement_Jump::StopJumping"));
 	}
-}
-
-void UGA_Movement_Jump::OnLanded(const FHitResult& Hit)
-{
-	EndAbilityState("Jumping");
 }

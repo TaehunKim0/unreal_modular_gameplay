@@ -27,7 +27,4 @@ public:
 private:
 	UFUNCTION()
 	void StopJumping();
-
-	UFUNCTION()
-	void OnLanded(const FHitResult& Hit);
 };

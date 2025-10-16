@@ -7,6 +7,8 @@
 #include "Engine/DataAsset.h"
 #include "BSCharacterDefinition.generated.h"
 
+class UInputMappingContext;
+class UBSInputSet;
 class UBSAbilitySet;
 class UBSPawnData;
 class UGameFeatureAction;
@@ -14,7 +16,7 @@ class UGameFeatureAction;
  * Pawn : 플레이어 또는 AI 용
  * Character : 이족 보행 플레이어용
  */
-UCLASS()
+UCLASS(Blueprintable)
 class BISHOUJO_DOOM_API UBSCharacterDefinition : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
@@ -32,11 +34,14 @@ public:
 	FGameplayTag CharacterTag;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UBSCharacterDefinition")
-	TArray<FString> GameFeaturesToEnable;
+	TArray<FString> GameFeaturesNameToEnable;
 
 	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
 	TObjectPtr<const UBSPawnData> PawnData;
 
-	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UBSCharacterDefinition")
-	// TArray<TObjectPtr<UBSAbilitySet>> AbilitySets;
+	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
+	TObjectPtr<const UBSInputSet> InputSet;
+
+	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
+	TObjectPtr<const UInputMappingContext> InputMappingContext;
 };

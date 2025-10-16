@@ -7,7 +7,7 @@
 #include "BSPawnData.generated.h"
 
 class UCameraComponent;
-class UBSInputConfig;
+class UBSInputSet;
 class UBSAbilitySet;
 /**
  * 
@@ -22,7 +22,4 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BS|Pawn")
 	TSubclassOf<APawn> PawnClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BS|Input")
-	TObjectPtr<UBSInputConfig> InputConfig;
 };

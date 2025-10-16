@@ -11,7 +11,8 @@ UENUM(BlueprintType)
 enum EUICategory : uint8
 {
 	Debug,
-	CharacterSelection
+	CharacterSelection,
+	None
 };
 /**
  * 
@@ -65,6 +66,9 @@ public:
 		return nullptr;
 	}
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	UUserWidget* K2_CreateWidget(TSubclassOf<UUserWidget> InWidgetClass, EUICategory InCategory, APlayerController* InPlayerController);
+
 	UFUNCTION()
 	static UBSPlayerUISubSystem* Get(const UObject* WorldContext);
 
@@ -84,14 +88,18 @@ public:
 	UUserWidget* GetWidgetByCategory(EUICategory InCategory) const;
 
 public:
-	void ShowDebugMessage(const FString& InVariableName, const FString& InDesc) const;
+	void ShowDebugMessage(const FString& InVariableName, const FString& InDesc);
+
+	UFUNCTION(BlueprintCallable)
+	void SetUIInputModeOnly(UUserWidget* InFocusWidget, APlayerController* InPlayerController);
+
+	UFUNCTION(BlueprintCallable)
+	void SetGameInputModeOnly(APlayerController* InPlayerController);
 
 public:
 	FOnUICreated OnUICreated;
 
 protected:
-	
-	// 카테고리별 위젯 맵
 	UPROPERTY()
 	TMap<TEnumAsByte<EUICategory>, UUserWidget*> ActiveWidgetMap;
 };
