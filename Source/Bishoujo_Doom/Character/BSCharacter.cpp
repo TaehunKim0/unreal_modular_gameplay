@@ -17,6 +17,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Input/BSInputComponent.h"
 #include "Player/BSPlayerState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
 
@@ -35,8 +36,6 @@ ABSCharacter::ABSCharacter(const FObjectInitializer& ObjectInitializer)
 
 	DefaultCharacterComponent = CreateDefaultSubobject<UBSDefaultCharacterComponent>(TEXT("DefaultCharacterComponent"));
 	PawnExtComponent = CreateDefaultSubobject<UBSPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
-	//PawnExtComponent->OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
-	//PawnExtComponent->OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemUninitialized));
 
 	// 카메라 붐 생성 (캐릭터 뒤에서 카메라를 당겨옴)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -80,7 +79,6 @@ void ABSCharacter::PossessedBy(AController* NewController)
 	UE_LOG(LogBS, Log, TEXT("ABSCharacter::PossessedBy"));
 }
 
-// Called when the game starts or when spawned
 void ABSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -101,7 +99,6 @@ void ABSCharacter::Tick(float DeltaTime)
 
 	if (UBSPlayerUISubSystem::Get(this)->GetWidgetByCategory(Debug))
 	{
-		auto Result = GetBSAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Action.Jump"));
 		FString IsGroundedString = GetMovementComponent()->IsMovingOnGround() ? TEXT("True") : TEXT("False");
 
 		if (const auto BSPlayerState = Cast<ABSPlayerState>(GetPlayerState()))

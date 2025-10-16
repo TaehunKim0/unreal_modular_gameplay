@@ -22,6 +22,8 @@ class BISHOUJO_DOOM_API UBSInputComponent : public UEnhancedInputComponent
 public:
 	UBSInputComponent(const FObjectInitializer& ObjectInitializer);
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
     // 네이티브 인풋 (어빌리티 제외) + 게임 플레이 태그 바인딩 함수
     template<class UserClass, typename FuncType>
     void BindNativeAction(const UBSInputSet* InputSet, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound = true);

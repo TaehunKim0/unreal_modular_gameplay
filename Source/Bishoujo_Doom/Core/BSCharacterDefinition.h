@@ -40,8 +40,8 @@ public:
 	TObjectPtr<const UBSPawnData> PawnData;
 
 	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
-	TObjectPtr<const UBSInputSet> InputSet;
+	TObjectPtr<const UBSInputSet> DefaultInputSet;
 
 	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
-	TObjectPtr<const UInputMappingContext> InputMappingContext;
+	TObjectPtr<const UInputMappingContext> DefaultInputMappingContext;
 };

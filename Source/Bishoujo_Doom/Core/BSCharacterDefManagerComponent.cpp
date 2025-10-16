@@ -5,6 +5,7 @@
 
 #include "BSCharacterDefinition.h"
 #include "BSLogChannels.h"
+#include "EnhancedInputSubsystems.h"
 #include "GameFeatureAction.h"
 #include "GameFeatureData.h"
 #include "GameFeaturesSubsystem.h"
@@ -42,20 +43,20 @@ void UBSCharacterDefManagerComponent::ApplyPawnData(const ABSPlayerState* InPlay
 	if (!IsValid(CurrentPawn))
 	{
 		UE_LOG(LogBS, Error, TEXT("UBSCharacterDefManagerComponent::GetPawn is nullptr"));
-		return;
+		return ;
 	}
 
 	const UBSPawnData* NewPawnData = NewCharacterDef->PawnData;
 	if (!IsValid(NewPawnData->PawnClass))
 	{
 		UE_LOG(LogBS, Error, TEXT("UBSCharacterDefManagerComponent::NewPawnData->PawnClass is nullptr"));
-		return;
+		return ;
 	}
 
 	if (NewPawnData->PawnClass == CurrentPawn->GetClass())
 	{
 		UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::NewPawnData->PawnClass and CurrentPawnClass is Same"));
-		return;
+		return ;
 	}
 
 	AController* Controller = InPlayerState->GetOwner<AController>();
@@ -75,7 +76,7 @@ void UBSCharacterDefManagerComponent::ApplyPawnData(const ABSPlayerState* InPlay
 	if (NewPawn == nullptr)
 	{
 		UE_LOG(LogBS, Error, TEXT("UBSCharacterDefManagerComponent::Spawn NewPawn is failed"));
-		return;
+		return ;
 	}
 	
 	Controller->Possess(NewPawn);
@@ -84,8 +85,7 @@ void UBSCharacterDefManagerComponent::ApplyPawnData(const ABSPlayerState* InPlay
 	{
 		UE_LOG(LogBS, Error, TEXT("UBSCharacterDefManagerComponent::NewPawn GetPlayerState is failed"));
 	}
-	
-	
+
 	UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent::ApplyPawnData: Successfully spawned and possessed new Pawn: %s"), *NewPawn->GetName());
 }
 
@@ -142,10 +142,19 @@ void UBSCharacterDefManagerComponent::CleanupCharacterDefinition(ABSPlayerState*
 {
 	if (!OldCharacterDef) return;
 
+	// 0. DefaultInputMappingContext 제거 (DefaultInputSet 의 InputAction 은 UInputComponent가 제거되면서 자동 제거됨)
+	const APlayerController* PC = PlayerState->GetPlayerController();
+	check(PC);
+
+	const ULocalPlayer* LP = Cast<ULocalPlayer>(PC->GetLocalPlayer());
+	check(LP);
+
+	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+	check(Subsystem);
+	Subsystem->RemoveMappingContext(OldCharacterDef->DefaultInputMappingContext);
+	
 	// 1. GameFeatures 비활성화
 	DisableGameFeatures(OldCharacterDef->GameFeaturesNameToEnable);
-
-	// PawnClass 변경
 
 	// 2. CharacterDefinition 언로드
 	const FPrimaryAssetId CharacterDefID("Character", OldCharacterDef->CharacterTag.GetTagLeafName());
@@ -158,7 +167,7 @@ void UBSCharacterDefManagerComponent::ApplyCharacterDefinition(ABSPlayerState* I
 {
 	if (!NewCharacterDef) return;
 
-	//ApplyPawnData(InPlayerState, NewCharacterDef);
+	ApplyPawnData(InPlayerState, NewCharacterDef);
 	EnableGameFeatures(InPlayerState, NewCharacterDef->GameFeaturesNameToEnable, NewCharacterDef);
 }
 
@@ -223,8 +232,10 @@ void UBSCharacterDefManagerComponent::DisableGameFeatures(const TArray<FString>&
 		
 		UE_LOG(LogBS, Warning, TEXT("Disabling GameFeature: %s"), *FeatureName);
 		GameFeatureSubsystem->DeactivateGameFeaturePlugin(PluginURL);
-		ActivatedGameFeatureNameArray.Remove(FeatureName);
+		ActivatedGameFeatureNameArray.Remove(*FeatureName);
 	}
+
+	ActivatedGameFeatureNameArray.Reset();
 }
 
 void UBSCharacterDefManagerComponent::DisableAllGameFeatures()
