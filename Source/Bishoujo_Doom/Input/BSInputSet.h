@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
-#include "BSInputConfig.generated.h"
+#include "BSInputSet.generated.h"
 
 /**
  * 
@@ -30,7 +30,7 @@ public:
  * 
  */
 UCLASS(BlueprintType, Const)
-class BISHOUJO_DOOM_API UBSInputConfig : public UDataAsset
+class BISHOUJO_DOOM_API UBSInputSet : public UDataAsset
 {
 	GENERATED_BODY()
 	

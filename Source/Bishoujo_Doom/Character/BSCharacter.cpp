@@ -3,7 +3,12 @@
 
 #include "BSCharacter.h"
 
+#include <string>
+
 #include "BSLogChannels.h"
+#include "EnhancedActionKeyMapping.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Component/BSCharacterMovementComponent.h"
@@ -43,6 +48,12 @@ ABSCharacter::ABSCharacter(const FObjectInitializer& ObjectInitializer)
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false; // 카메라는 붐에 대해 상대적으로 회전하지 않음
+
+	ConstructorHelpers::FClassFinder<UUserWidget> FindWidget(TEXT("/Game/Bishoujo_Doom/UI/WB_DebugWidget.WB_DebugWidget_C"));
+	if (FindWidget.Succeeded())
+	{
+		DebugWidgetClass = FindWidget.Class;
+	}
 }
 
 void ABSCharacter::PreInitializeComponents()
@@ -84,18 +95,25 @@ void ABSCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	UE_LOG(LogBS, Log, TEXT("ABSCharacter::EndPlay"));
 }
 
-// Called every frame
 void ABSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	auto Result = GetBSAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Action.Jump"));
-	FString ResultString = Result ? TEXT("True") : TEXT("False");
+	if (UBSPlayerUISubSystem::Get(this)->GetWidgetByCategory(Debug))
+	{
+		auto Result = GetBSAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Action.Jump"));
+		FString IsGroundedString = GetMovementComponent()->IsMovingOnGround() ? TEXT("True") : TEXT("False");
 
-	FString IsGroundedString = GetMovementComponent()->IsMovingOnGround() ? TEXT("True") : TEXT("False");
-	
-	UBSPlayerUISubSystem::Get(this)->ShowDebugMessage(TEXT("Ability.Jump"), ResultString);
-	UBSPlayerUISubSystem::Get(this)->ShowDebugMessage(TEXT("Grounded"), IsGroundedString);
+		if (const auto BSPlayerState = Cast<ABSPlayerState>(GetPlayerState()))
+			UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("DefinitionName", BSPlayerState->GetCharacterDefData()->CharacterTag.ToString());
+			
+		UBSPlayerUISubSystem::Get(this)->ShowDebugMessage(TEXT("Grounded"), IsGroundedString);
+	}
+	else
+	{
+		APlayerController* APC = Cast<APlayerController>(GetController());
+		UBSPlayerUISubSystem::Get(this)->CreateWidget<UUserWidget>(DebugWidgetClass, Debug, APC);
+	}
 }
 
 UBSAbilitySystemComponent* ABSCharacter::GetBSAbilitySystemComponent() const
@@ -107,4 +125,3 @@ UAbilitySystemComponent* ABSCharacter::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
-

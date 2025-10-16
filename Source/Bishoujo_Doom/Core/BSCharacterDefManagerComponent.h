@@ -34,17 +34,14 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 private:
+	// Definition
 	void ApplyCharacterDefinition(ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
-	
 	void ApplyPawnData(const ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef) const;
-	//void ApplyAbilitySets(ABSPlayerState* InPlayerState,const UBSCharacterDefinition* InCharacterDef);
-	
 	void CleanupCharacterDefinition(ABSPlayerState* PlayerState, const UBSCharacterDefinition* OldCharacterDef);
 	
 	// GameFeature
-	void CollectGameFeaturePluginURL(const TArray<FString>& InFeaturePluginURLArray);
-	void EnableGameFeatures(ABSPlayerState* PlayerState, const TArray<FString>& GameFeaturesToEnable, const UBSCharacterDefinition* NewCharacterDef) const;
-	void DisableGameFeatures(ABSPlayerState* PlayerState, const TArray<FString>& GameFeaturesToDisable);
+	void EnableGameFeatures(ABSPlayerState* PlayerState, const TArray<FString>& GameFeaturesNameToEnable, const UBSCharacterDefinition* NewCharacterDef);
+	void DisableGameFeatures(const TArray<FString>& GameFeaturesToDisable);
 	void DisableAllGameFeatures();
 
 	UFUNCTION()
@@ -54,5 +51,5 @@ public:
 	FOnCharacterDefinitionChanged OnCharacterDefinitionChangedDelegate;
 
 private:
-	TArray<FString> GameFeaturePluginURLs;
+	TArray<FString> ActivatedGameFeatureNameArray;
 };

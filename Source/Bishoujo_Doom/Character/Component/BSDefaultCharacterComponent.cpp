@@ -14,9 +14,10 @@
 #include "Core/BSCharacterDefinition.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/Character.h"
+#include "GameModes/BSAssetManager.h"
 #include "GameModes/BSGameState.h"
 #include "Input/BSInputComponent.h"
-#include "Input/BSInputConfig.h"
+#include "Input/BSInputSet.h"
 #include "Player/BSPlayerController.h"
 #include "Player/BSPlayerState.h"
 
@@ -161,26 +162,26 @@ void UBSDefaultCharacterComponent::InitializePlayerInput(UInputComponent* Player
 
 	if (const UBSPawnData* PawnData = BSPS->GetCharacterDefData()->PawnData)
     {
-       if (const UBSInputConfig* InputConfig = PawnData->InputConfig)
+       if (const UBSInputSet* InputConfig = BSPS->GetCharacterDefData()->InputSet)
        {
-          if (UInputMappingContext* IMC = InputMappingContext.Get())
-          {
-             Subsystem->AddMappingContext(IMC, 0);
-          	 UE_LOG(LogBS, Log, TEXT("UBSDefaultCharacterComponent::InitializePlayerInput::AddMappingContext"));
-          }
-    
-          UBSInputComponent* BSIC = Cast<UBSInputComponent>(PlayerInputComponent);
-          if (ensureMsgf(BSIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UBSInputComponent or a subclass of it.")))
-          {
-             TArray<uint32> BindHandles;
-             BSIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, /*out*/ BindHandles);
-			 
-             BSIC->BindNativeAction(InputConfig, BSGamePlayTags::FindTagByString("InputTag.Native.Move", false), ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
-             BSIC->BindNativeAction(InputConfig, BSGamePlayTags::FindTagByString("InputTag.Native.Look", false), ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
-             BSIC->BindNativeAction(InputConfig, BSGamePlayTags::FindTagByString("InputTag.Native.Look", false), ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
+       		UBSInputComponent* BSIC = Cast<UBSInputComponent>(PlayerInputComponent);
+			if (const UInputMappingContext* IMC = BSPS->GetCharacterDefData()->InputMappingContext.Get())
+			{
+				Subsystem->AddMappingContext(IMC, 0);
+				UE_LOG(LogBS, Log, TEXT("UBSDefaultCharacterComponent::InitializePlayerInput::AddMappingContext"));
+			}
+       		
+       		if (ensureMsgf(BSIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UBSInputComponent or a subclass of it.")))
+		    {
+			    TArray<uint32> BindHandles;
+			    BSIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, /*out*/ BindHandles);
+				 
+			    BSIC->BindNativeAction(InputConfig, BSGamePlayTags::FindTagByString("InputTag.Native.Move", false), ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
+			    BSIC->BindNativeAction(InputConfig, BSGamePlayTags::FindTagByString("InputTag.Native.Look", false), ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
+			    BSIC->BindNativeAction(InputConfig, BSGamePlayTags::FindTagByString("InputTag.Native.Look", false), ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
 
-          	UE_LOG(LogBS, Log, TEXT("UBSDefaultCharacterComponent::InitializePlayerInput::BindNativeAction"));
-          }
+			    UE_LOG(LogBS, Log, TEXT("UBSDefaultCharacterComponent::InitializePlayerInput::BindNativeAction"));
+		    }
        }
     }
 }
@@ -188,6 +189,27 @@ void UBSDefaultCharacterComponent::InitializePlayerInput(UInputComponent* Player
 void UBSDefaultCharacterComponent::OnCharacterDefinitionChanged(const UBSCharacterDefinition* NewDefinition)
 {
 	CheckDefaultInitialization();
+}
+
+void UBSDefaultCharacterComponent::AddAdditionalBindAction(const UBSInputSet* InInputSet,TArray<uint32>& OutBindHandles)
+{
+	UBSInputComponent* BSIC = Cast<UBSInputComponent>(GetPawn<APawn>()->FindComponentByClass<UInputComponent>());
+	if (ensureMsgf(BSIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UBSInputComponent or a subclass of it.")))
+	{
+		BSIC->BindAbilityActions(InInputSet, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, /*out*/ OutBindHandles);
+		UE_LOG(LogBS, Log, TEXT("UBSDefaultCharacterComponent::AddAdditionalBindAction"));
+	}
+}
+
+void UBSDefaultCharacterComponent::RemoveAdditionalBindAction(const uint32 InBindHandle)
+{
+	UBSInputComponent* BSIC = Cast<UBSInputComponent>(GetPawn<APawn>()->FindComponentByClass<UInputComponent>());
+	if (ensureMsgf(BSIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UBSInputComponent or a subclass of it.")))
+	{
+		BSIC->RemoveActionBindingForHandle(InBindHandle);
+		
+		UE_LOG(LogBS, Log, TEXT("UBSDefaultCharacterComponent::RemoveAdditionalBindAction"));
+	}
 }
 
 void UBSDefaultCharacterComponent::Input_AbilityInputTagPressed(FGameplayTag InputTag)
@@ -241,7 +263,6 @@ void UBSDefaultCharacterComponent::Input_Move(const FInputActionValue& InputActi
 void UBSDefaultCharacterComponent::Input_LookMouse(const FInputActionValue& InputActionValue)
 {
 	APawn* Pawn = GetPawn<APawn>();
-
 	if (!Pawn)
 	{
 		return;

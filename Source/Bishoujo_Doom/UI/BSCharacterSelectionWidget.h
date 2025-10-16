@@ -18,7 +18,8 @@ class BISHOUJO_DOOM_API UBSCharacterSelectionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	virtual void NativeConstruct() override;	
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 private:
 	UFUNCTION()

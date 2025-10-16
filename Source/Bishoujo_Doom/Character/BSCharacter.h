@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "BSCharacter.generated.h"
 
+class UInputMappingContext;
 class UBSDefaultCharacterComponent;
 class UBSDebugWidget;
 class ABSHUD;
@@ -53,4 +54,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BS|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBSAbilitySystemComponent> AbilitySystemComponent;
+
+	TSubclassOf<UBSDebugWidget> DebugWidgetClass;
+
+private:
+	TArray<UInputMappingContext> InputMappingContexts;
 };

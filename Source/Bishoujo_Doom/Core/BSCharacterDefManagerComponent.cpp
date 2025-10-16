@@ -143,41 +143,15 @@ void UBSCharacterDefManagerComponent::CleanupCharacterDefinition(ABSPlayerState*
 	if (!OldCharacterDef) return;
 
 	// 1. GameFeatures 비활성화
-	DisableGameFeatures(PlayerState, OldCharacterDef->GameFeaturesToEnable);
+	DisableGameFeatures(OldCharacterDef->GameFeaturesNameToEnable);
 
 	// PawnClass 변경
 
 	// 2. CharacterDefinition 언로드
 	const FPrimaryAssetId CharacterDefID("Character", OldCharacterDef->CharacterTag.GetTagLeafName());
 	UBSAssetManager::Get().UnloadPrimaryAsset(CharacterDefID);
-
-	// 3. Pawn 의 어빌리티 제거
-	
-	// AbilitySets 제거 (현재 Pawn이 있다면)
-	if (APawn* CurrentPawn = PlayerState->GetPawn())
-	{
-		// AbilitySystemComponent에서 어빌리티들 제거
-		// 구체적인 구현은 ASC 시스템에 따라 다름
-	}
 }
 
-void UBSCharacterDefManagerComponent::CollectGameFeaturePluginURL(const TArray<FString>& InFeaturePluginURLArray)
-{
-	GameFeaturePluginURLs.Reset();
-	
-	for (const FString& PluginName : InFeaturePluginURLArray)
-	{
-		FString PluginURL;
-		if (UGameFeaturesSubsystem::Get().GetPluginURLByName(PluginName, PluginURL))
-		{
-			GameFeaturePluginURLs.AddUnique(PluginURL);
-		}
-		else
-		{
-			UE_LOG(LogBS, Error, TEXT("CollectGameFeaturePluginURL Failed"));
-		}
-	}
-}
 
 void UBSCharacterDefManagerComponent::ApplyCharacterDefinition(ABSPlayerState* InPlayerState,
                                                                const UBSCharacterDefinition* NewCharacterDef)
@@ -185,18 +159,20 @@ void UBSCharacterDefManagerComponent::ApplyCharacterDefinition(ABSPlayerState* I
 	if (!NewCharacterDef) return;
 
 	//ApplyPawnData(InPlayerState, NewCharacterDef);
-	CollectGameFeaturePluginURL(NewCharacterDef->GameFeaturesToEnable);
-	EnableGameFeatures(InPlayerState, GameFeaturePluginURLs, NewCharacterDef);
+	EnableGameFeatures(InPlayerState, NewCharacterDef->GameFeaturesNameToEnable, NewCharacterDef);
 }
 
 void UBSCharacterDefManagerComponent::EnableGameFeatures(ABSPlayerState* PlayerState,
-	const TArray<FString>& GameFeaturesToEnable, const UBSCharacterDefinition* NewCharacterDef) const
+	const TArray<FString>& GameFeaturesNameToEnable, const UBSCharacterDefinition* NewCharacterDef)
 {
 	UGameFeaturesSubsystem& GameFeatureSubsystem = UGameFeaturesSubsystem::Get();
 
-	for (const FString& PluginURL : GameFeaturesToEnable)
+	for (const FString& FeatureName : GameFeaturesNameToEnable)
 	{
-		UE_LOG(LogBS, Log, TEXT("Enabling GameFeature: %s"), *PluginURL);
+		FString PluginURL;
+		UGameFeaturesSubsystem::Get().GetPluginURLByName(FeatureName, PluginURL);
+		
+		UE_LOG(LogBS, Log, TEXT("Enabling GameFeature: %s"), *FeatureName);
 		
 		GameFeatureSubsystem.LoadGameFeaturePlugin(
 			PluginURL,
@@ -208,52 +184,55 @@ void UBSCharacterDefManagerComponent::EnableGameFeatures(ABSPlayerState* PlayerS
 				GameFeatureSubsystem.GetGameFeatureDataForRegisteredPluginByURL(PluginURL)->GetPluginName(PlayerState->PendingCharacterPluginName);
 			})
 		);
-
+		
 		GameFeatureSubsystem.LoadAndActivateGameFeaturePlugin(
 			PluginURL,
-			FGameFeaturePluginLoadComplete::CreateLambda([this, PlayerState, PluginURL, NewCharacterDef](const UE::GameFeatures::FResult& Result)
+			FGameFeaturePluginLoadComplete::CreateLambda([this, PlayerState, FeatureName, NewCharacterDef](const UE::GameFeatures::FResult& Result)
 			{
 				// 모든 게임 피처 액션들이 Activated 되면 Complete 됨.
 				PlayerState->SetCharacterDefData(NewCharacterDef);
 				PlayerState->PendingCharacterPluginName.Reset();
-				
+
+				ActivatedGameFeatureNameArray.Add(FeatureName);
 				OnCharacterDefinitionChangedDelegate.Broadcast(NewCharacterDef);
 			})
 		);
 	}
+
+	if (GameFeaturesNameToEnable.IsEmpty())
+	{
+		PlayerState->SetCharacterDefData(NewCharacterDef);
+		PlayerState->PendingCharacterPluginName.Reset();
+				
+		OnCharacterDefinitionChangedDelegate.Broadcast(NewCharacterDef);
+	}
 }
 
-void UBSCharacterDefManagerComponent::DisableGameFeatures(ABSPlayerState* PlayerState,
-	const TArray<FString>& GameFeaturesToDisable)
+void UBSCharacterDefManagerComponent::DisableGameFeatures(const TArray<FString>& GameFeaturesToDisable)
 {
-	UGameFeaturesSubsystem& GameFeatureSubsystem = UGameFeaturesSubsystem::Get();
-	if (IsValid(&GameFeatureSubsystem)) return;
+	UGameFeaturesSubsystem* GameFeatureSubsystem = GEngine->GetEngineSubsystem<UGameFeaturesSubsystem>();
+	if (!IsValid(GameFeatureSubsystem))
+	{
+		UE_LOG(LogBS, Error, TEXT("GameFeatureSubsystem is not valid"));
+	}
 
 	for (const FString& FeatureName : GameFeaturesToDisable)
 	{
-		UE_LOG(LogBS, Log, TEXT("Disabling GameFeature: %s"), *FeatureName);
-		GameFeatureSubsystem.DeactivateGameFeaturePlugin(FeatureName);
+		FString PluginURL;
+		UGameFeaturesSubsystem::Get().GetPluginURLByName(FeatureName, PluginURL);
+		
+		UE_LOG(LogBS, Warning, TEXT("Disabling GameFeature: %s"), *FeatureName);
+		GameFeatureSubsystem->DeactivateGameFeaturePlugin(PluginURL);
+		ActivatedGameFeatureNameArray.Remove(FeatureName);
 	}
 }
 
 void UBSCharacterDefManagerComponent::DisableAllGameFeatures()
 {
-	for (const FString& FeatureName : GameFeaturePluginURLs)
-	{
-		UE_LOG(LogBS, Log, TEXT("Disabling GameFeature: %s"), *FeatureName);
-		UGameFeaturesSubsystem& GameFeatureSubsystem = UGameFeaturesSubsystem::Get();
-		GameFeatureSubsystem.DeactivateGameFeaturePlugin(FeatureName);
-	}
+	DisableGameFeatures(ActivatedGameFeatureNameArray);
 }
 
 void UBSCharacterDefManagerComponent::OnCharacterDefinitionChanged(const UBSCharacterDefinition* InNewDefinition)
 {
-	UBSPlayerUISubSystem::Get(this)->OnUICreated.AddLambda([this, InNewDefinition](EUICategory InCategory)
-	{
-		if (InCategory == EUICategory::Debug)
-		{
-			UE_LOG(LogBS, Log, TEXT("UBSCharacterDefManagerComponent:OnUICreated"));
-			UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("DefinitionName",  InNewDefinition->CharacterTag.ToString());
-		}
-	});
+	UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("DefinitionName",  InNewDefinition->CharacterTag.ToString());
 }
