@@ -1,17 +1,14 @@
-## ✅ Completed
-- [x] Runtime GameFeature 비동기 로드
-- [x] Runtime CharacterDefinition 비동기 로드
-- [x] PrimaryAsset 및 AssetManager 사용
-  - CharacterDefinition을 PrimaryAsset으로 설정
-
-
-## 🚧 In Progress
-- [ ] Client에 CharacterDefinition 적용
-  - [ ] AbilitySets 적용
-  - [ ] PawnData 적용
-  - [ ] GameFeatureAction 적용
-  - [X] GameFeatureToEnable 적용
-
+## ✅ CheckList
+- [x] Async Load PrimaryAsset using AssetManager
+- [x] Async Load DataRegistry and Set Data
+- [x] Using GameFeaturePlugin
+- [x] Add GameFeatureAction
+    - [x] Add Abilities
+    - [ ] Add Attributes
+    - [x] Add InputMappingContext
+    - [x] Add InputSet (InputAction + GamePlayTag(InputTag))
+    - [x] Add Widgets
+- [x] Using Gameplay Ability System
 
 ##
 Epic Games의 Lyra Starter Game을 분석하여 팀 협업 환경에 최적화된 프레임워크로 발전
