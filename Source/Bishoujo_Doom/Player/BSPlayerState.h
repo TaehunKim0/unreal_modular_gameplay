@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerState.h"
 #include "BSPlayerState.generated.h"
 
+class UBSHealthAttributeSet;
 class UBSAbilitySystemComponent;
 class UBSCharacterDefinition;
 class ABSPlayerController;
@@ -23,12 +24,9 @@ class BISHOUJO_DOOM_API ABSPlayerState : public AModularPlayerState, public IAbi
 public:
 	ABSPlayerState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	UFUNCTION(BlueprintCallable, Category = "BS|PlayerState")
-	ABSPlayerController* GetBSPlayerController() const;
-
-	
 	//~AActor interface
 	virtual void PostInitializeComponents() override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(class TArray<class FLifetimeProperty,class TSizedDefaultAllocator<32> > &)const override;
 	//~End of AActor interface
 	
@@ -40,6 +38,9 @@ public:
 	const UBSCharacterDefinition* GetCharacterDefData() const { return CharacterDefData; }
 	void SetCharacterDefData(const UBSCharacterDefinition* InCharacterDefData);
 
+	UFUNCTION(BlueprintCallable, Category = "BS|PlayerState")
+	ABSPlayerController* GetBSPlayerController() const;
+
 public:
 	UPROPERTY(Replicated)
 	FString PendingCharacterPluginName;
@@ -48,8 +49,10 @@ protected:
 	UPROPERTY()
 	TObjectPtr<const UBSCharacterDefinition> CharacterDefData;
 
+	UPROPERTY()
+	TObjectPtr<const UBSHealthAttributeSet> HealthAttributeSet; 
+
 private:
-	// The ability system component sub-object used by player characters.
-	UPROPERTY(VisibleAnywhere, Category = "BS|PlayerState")
+	UPROPERTY(VisibleAnywhere, Category = "PlayerState")
 	TObjectPtr<UBSAbilitySystemComponent> AbilitySystemComponent;
 };

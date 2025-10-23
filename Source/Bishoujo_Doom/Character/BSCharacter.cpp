@@ -5,6 +5,7 @@
 
 #include <string>
 
+#include "BSGamePlayTags.h"
 #include "BSLogChannels.h"
 #include "EnhancedActionKeyMapping.h"
 #include "EnhancedInputSubsystems.h"
@@ -12,8 +13,9 @@
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Component/BSCharacterMovementComponent.h"
-#include "Component/BSDefaultCharacterComponent.h"
-#include "Component/BSPawnExtensionComponent.h"
+#include "Component/BSPawnInputComponent.h"
+#include "Component/BSHealthComponent.h"
+#include "Component/BSPawnStateManagerComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -21,7 +23,6 @@
 #include "Player/BSPlayerState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
 
-// Sets default values
 ABSCharacter::ABSCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBSCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
@@ -34,8 +35,9 @@ ABSCharacter::ABSCharacter(const FObjectInitializer& ObjectInitializer)
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	DefaultCharacterComponent = CreateDefaultSubobject<UBSDefaultCharacterComponent>(TEXT("DefaultCharacterComponent"));
-	PawnExtComponent = CreateDefaultSubobject<UBSPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
+	PawnStateManagerComponent = CreateDefaultSubobject<UBSPawnStateManagerComponent>(TEXT("PawnStateManagerComponent"));
+	PawnInputComponent = CreateDefaultSubobject<UBSPawnInputComponent>(TEXT("PawnInputComponent"));
+	HealthComponent = CreateDefaultSubobject<UBSHealthComponent>(TEXT("HealthComponent"));
 
 	// 카메라 붐 생성 (캐릭터 뒤에서 카메라를 당겨옴)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -53,6 +55,8 @@ ABSCharacter::ABSCharacter(const FObjectInitializer& ObjectInitializer)
 	{
 		DebugWidgetClass = FindWidget.Class;
 	}
+
+	PawnStateManagerComponent->OnPawnGameplayReadyCompleted.AddUObject(this, &ABSCharacter::OnPawnGameplayReadyComplete);
 }
 
 void ABSCharacter::PreInitializeComponents()
@@ -77,6 +81,7 @@ void ABSCharacter::PossessedBy(AController* NewController)
 	AbilitySystemComponent->InitAbilityActorInfo(BSPlayerState, this);
 
 	UE_LOG(LogBS, Log, TEXT("ABSCharacter::PossessedBy"));
+	OnPossessedDelegate.Broadcast(this);
 }
 
 void ABSCharacter::BeginPlay()
@@ -93,24 +98,24 @@ void ABSCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	UE_LOG(LogBS, Log, TEXT("ABSCharacter::EndPlay"));
 }
 
+void ABSCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	OnRepPlayerStateDelegate.Broadcast(GetPlayerState());
+}
+
 void ABSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (UBSPlayerUISubSystem::Get(this)->GetWidgetByCategory(Debug))
+	if (PawnStateManagerComponent->GetInitState() != BSGamePlayTags::InitState_GameplayReady)
 	{
-		FString IsGroundedString = GetMovementComponent()->IsMovingOnGround() ? TEXT("True") : TEXT("False");
+		return;
+	}
 
-		if (const auto BSPlayerState = Cast<ABSPlayerState>(GetPlayerState()))
-			UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("DefinitionName", BSPlayerState->GetCharacterDefData()->CharacterTag.ToString());
-			
-		UBSPlayerUISubSystem::Get(this)->ShowDebugMessage(TEXT("Grounded"), IsGroundedString);
-	}
-	else
-	{
-		APlayerController* APC = Cast<APlayerController>(GetController());
-		UBSPlayerUISubSystem::Get(this)->CreateWidget<UUserWidget>(DebugWidgetClass, Debug, APC);
-	}
+	FString SHealth; SHealth.AppendInt(HealthComponent->GetHealth());
+	UBSPlayerUISubSystem::Get(this)->ShowDebugMessage("Health", SHealth );
 }
 
 UBSAbilitySystemComponent* ABSCharacter::GetBSAbilitySystemComponent() const
@@ -121,4 +126,12 @@ UBSAbilitySystemComponent* ABSCharacter::GetBSAbilitySystemComponent() const
 UAbilitySystemComponent* ABSCharacter::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void ABSCharacter::OnPawnGameplayReadyComplete()
+{
+	UBSPlayerUISubSystem::Get(this)->CreateWidget<UBSDebugWidget>(DebugWidgetClass, EUICategory::Debug, GetPlayerState()->GetPlayerController());
+
+	const auto BSPlayerState = Cast<ABSPlayerState>(GetPlayerState());
+	UBSPlayerUISubSystem::Get(this)->ShowPawnAbilitySetMessage(BSPlayerState, BSPlayerState->GetCharacterDefData());
 }

@@ -3,7 +3,7 @@
 
 #include "BSAbilitySystemComponent.h"
 
-#include "BSGameplayAbility.h"
+#include "Abilities/BSGameplayAbility.h"
 #include "BSLogChannels.h"
 
 UBSAbilitySystemComponent::UBSAbilitySystemComponent()

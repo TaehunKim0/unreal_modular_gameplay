@@ -5,7 +5,7 @@
 
 #include "EngineUtils.h"
 #include "GameFeaturesSubsystem.h"
-#include "Character/Component/BSDefaultCharacterComponent.h"
+#include "Character/Component/BSPawnInputComponent.h"
 #include "Elements/Columns/TypedElementRevisionControlColumns.h"
 #include "Input/BSInputComponent.h"
 
@@ -85,7 +85,7 @@ void UGameFeatureAction_AddInputSet::AddActorInputSet(APawn* InPawn, const FGame
 			return;
 		}
 		
-		const auto DefaultCharacterComp = InPawn->FindComponentByClass<UBSDefaultCharacterComponent>();
+		const auto DefaultCharacterComp = InPawn->FindComponentByClass<UBSPawnInputComponent>();
 		if (!DefaultCharacterComp)
 		{
 			UE_LOG(LogBS, Error, TEXT("UGameFeatureAction_AddInputSet::DefaultCharacterComp Not Found!"));
@@ -104,7 +104,7 @@ void UGameFeatureAction_AddInputSet::AddActorInputSet(APawn* InPawn, const FGame
 void UGameFeatureAction_AddInputSet::RemoveActorInputSet(APawn* InPawn)
 {
 	auto RemoveInputSetHandle = AddedInputSetMap.FindOrAdd(InPawn);
-	const auto DefaultCharacterComp = InPawn->FindComponentByClass<UBSDefaultCharacterComponent>();
+	const auto DefaultCharacterComp = InPawn->FindComponentByClass<UBSPawnInputComponent>();
 	if (!DefaultCharacterComp)
 	{
 		UE_LOG(LogBS, Error, TEXT("UGameFeatureAction_AddInputSet::DefaultCharacterComp Not Found!"));

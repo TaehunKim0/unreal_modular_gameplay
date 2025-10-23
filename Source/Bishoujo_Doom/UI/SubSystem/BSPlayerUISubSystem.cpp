@@ -4,7 +4,10 @@
 #include "BSPlayerUISubSystem.h"
 
 #include "BSLogChannels.h"
+#include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "Core/BSCharacterDefinition.h"
+#include "Player/BSPlayerState.h"
 #include "UI/Debug/BSDebugWidget.h"
 
 void UBSPlayerUISubSystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -74,6 +77,43 @@ void UBSPlayerUISubSystem::ShowDebugMessage(const FString& InVariableName, const
 			UE_LOG(LogBS, Error, TEXT("UBSPlayerUISubSystem::DebugWidget is Null"));
 		}
 	}
+}
+
+void UBSPlayerUISubSystem::ShowPawnAbilitySetMessage(const ABSPlayerState* InBSPlayerState,	const UBSCharacterDefinition* InNewDefinition)
+{
+	UBSDebugWidget* DebugWidget = GetWidget<UBSDebugWidget>(EUICategory::Debug);
+	if (DebugWidget)
+	{
+		DebugWidget->ClearDebugMessages();
+	}
+	
+	ShowDebugMessage("DefinitionName",  InNewDefinition->CharacterTag.ToString());
+
+	// Abilities
+	int Index = 1;
+	for (const auto AbilitySpec : InBSPlayerState->GetBSAbilitySystemComponent()->GetActivatableAbilities())
+	{
+		if (AbilitySpec.Ability)
+		{
+			FString AbilityName = AbilitySpec.Ability->GetName();
+			FString VarName = "Ability "; VarName.AppendInt(Index);
+			ShowDebugMessage(VarName,  AbilityName);
+		}
+	}
+
+	// Attributes
+	Index = 1;
+	const auto SpawnedAttributes = InBSPlayerState->GetBSAbilitySystemComponent()->GetSpawnedAttributes();
+	for (const auto AttributeSet : SpawnedAttributes)
+	{
+		if (AttributeSet)
+		{
+			FString AttributeName = AttributeSet->GetName();
+			FString VarName = "Attribute "; VarName.AppendInt(Index);
+			ShowDebugMessage(VarName,  AttributeName);
+		}
+	}
+
 }
 
 void UBSPlayerUISubSystem::SetUIInputModeOnly(UUserWidget* InFocusWidget, APlayerController* InPlayerController)

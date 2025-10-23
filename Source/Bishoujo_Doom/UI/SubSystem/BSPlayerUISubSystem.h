@@ -7,6 +7,9 @@
 #include "Blueprint/UserWidget.h"
 #include "BSPlayerUISubSystem.generated.h"
 
+class UBSCharacterDefinition;
+class ABSPlayerState;
+
 UENUM(BlueprintType)
 enum EUICategory : uint8
 {
@@ -41,7 +44,7 @@ public:
 
 		if (auto FindWidget = GetWidgetByCategory(InCategory))
 		{
-			return FindWidget;
+			return Cast<T>(FindWidget);
 		}
 
 		T* NewWidget = ::CreateWidget<T>(InPlayerController, InWidgetClass);
@@ -88,7 +91,9 @@ public:
 	UUserWidget* GetWidgetByCategory(EUICategory InCategory) const;
 
 public:
+	// Debug Only
 	void ShowDebugMessage(const FString& InVariableName, const FString& InDesc);
+	void ShowPawnAbilitySetMessage(const ABSPlayerState* InBSPlayerState, const UBSCharacterDefinition* InNewDefinition);
 
 	UFUNCTION(BlueprintCallable)
 	void SetUIInputModeOnly(UUserWidget* InFocusWidget, APlayerController* InPlayerController);

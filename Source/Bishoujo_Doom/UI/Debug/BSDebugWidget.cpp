@@ -36,3 +36,9 @@ void UBSDebugWidget::ShowDebugMessage(const FString& InVariableName, const FStri
 		DebugBoxElement->DescTextBlock->SetText(FText::FromString(InDesc));
 	}
 }
+
+void UBSDebugWidget::ClearDebugMessages()
+{
+	VerticalBox->ClearChildren();
+	DebugBoxElementWidgetArray.Reset();
+}

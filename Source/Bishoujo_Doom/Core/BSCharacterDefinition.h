@@ -7,6 +7,7 @@
 #include "Engine/DataAsset.h"
 #include "BSCharacterDefinition.generated.h"
 
+class UAttributeSet;
 class UInputMappingContext;
 class UBSInputSet;
 class UBSAbilitySet;
@@ -41,6 +42,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
 	TObjectPtr<const UBSInputSet> DefaultInputSet;
+
+	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
+	TObjectPtr<const UBSAbilitySet> DefaultAbilitySet;
 
 	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
 	TObjectPtr<const UInputMappingContext> DefaultInputMappingContext;

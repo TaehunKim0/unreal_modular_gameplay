@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "AbilitySystem/BSGameplayAbility.h"
+#include "AbilitySystem/Abilities/BSGameplayAbility.h"
 #include "GA_Movement_Jump.generated.h"
 
 class UCharacterMovementComponent;

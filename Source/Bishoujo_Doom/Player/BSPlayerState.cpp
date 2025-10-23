@@ -6,7 +6,8 @@
 #include "BSLogChannels.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "BSPlayerController.h"
-#include "AbilitySystem/BSAbilitySet.h"
+#include "AbilitySystem/Abilities/BSAbilitySet.h"
+#include "AbilitySystem/Attributes/BSHealthAttributeSet.h"
 #include "Character/BSPawnData.h"
 #include "Core/BSCharacterDefinition.h"
 #include "GameModes/BSAssetManager.h"
@@ -21,8 +22,12 @@ ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 
 	CharacterDefData = nullptr;
 
+	HealthAttributeSet = CreateDefaultSubobject<UBSHealthAttributeSet>(TEXT("HealthAttributeSet"));
+
 	// AbilitySystemComponent needs to be updated at a high frequency.
 	SetNetUpdateFrequency(100.0f);
+
+	PrimaryActorTick.bCanEverTick = true;
 	
 	UE_LOG(LogBS, Log, TEXT("ABSPlayerState::ABSPlayerState"));
 }
@@ -37,6 +42,11 @@ void ABSPlayerState::PostInitializeComponents()
 	const FPrimaryAssetId DefaultCharacterDefID("Character", "Default");
 	auto NewCharacterDef = UBSAssetManager::Get().LoadCharacterDefinitionSynchronously(DefaultCharacterDefID);
 	CharacterDefData = NewCharacterDef;
+}
+
+void ABSPlayerState::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
 }
 
 ABSPlayerController* ABSPlayerState::GetBSPlayerController() const

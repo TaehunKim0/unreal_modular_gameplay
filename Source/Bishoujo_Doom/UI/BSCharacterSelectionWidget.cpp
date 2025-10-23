@@ -42,7 +42,8 @@ void UBSCharacterSelectionWidget::SetCharacterDefinition(FGameplayTag InTag)
 	
 	if (const ABSGameState* GameState = Cast<ABSGameState>(GetWorld()->GetGameState()))
 	{
-		GameState->CharacterDefManagerComponent->SetCharacterDefinition(GetOwningPlayerState(), InTag);
+		const auto CharacterDefSystem = GetGameInstance<UGameInstance>()->GetSubsystem<UBSCharacterDefSystem>();
+		CharacterDefSystem->SetCharacterDefinition(GetOwningPlayerState(), InTag);
 		UBSPlayerUISubSystem::Get(GetWorld())->RemoveWidget(CharacterSelection);
 	}
 }

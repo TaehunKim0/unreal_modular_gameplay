@@ -2,11 +2,12 @@
 
 namespace BSGamePlayTags
 {
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_Spawned, "InitState.Spawned", "1: Actor/component has initially spawned and can be extended");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_CharacterDefinitionLoaded, "InitState.CharacterDefinitionLoaded", "2: All required data has been loaded/replicated and is ready for initialization");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_CharacterInitialized, "InitState.CharacterInitialized", "3: The available data has been initialized for this actor/component, but it is not ready for full gameplay");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_GameplayReady, "InitState.GameplayReady", "4: The actor/component is fully ready for active gameplay");
-
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_Spawned, "InitState.Spawned", "1");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_PlayerStateInitialized, "InitState.PlayerStateInitialized", "2");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_ASCInitialized, "InitState.ASCInitialized", "3");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_CharacterDefinitionInitialized, "InitState.CharacterDefinitionInitialized", "4.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_CharacterComponentInitialized, "InitState.CharacterComponentInitialized", "5.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_GameplayReady, "InitState.GameplayReady", "6.");
 
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{

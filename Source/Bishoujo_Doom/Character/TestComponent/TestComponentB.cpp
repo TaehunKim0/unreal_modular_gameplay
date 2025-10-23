@@ -51,21 +51,21 @@ bool UTestComponentB::CanChangeInitState(UGameFrameworkComponentManager* Manager
     }
     
     // B는 A가 DataAvailable이 된 후에만 자신도 DataAvailable이 될 수 있음
-    if (CurrentState == BSGamePlayTags::InitState_Spawned && DesiredState == BSGamePlayTags::InitState_CharacterDefinitionLoaded)
+    if (CurrentState == BSGamePlayTags::InitState_Spawned && DesiredState == BSGamePlayTags::InitState_CharacterDefinitionInitialized)
     {
         // A 컴포넌트가 준비되었는지 확인
-        bool bComponentAReady = Manager->HasFeatureReachedInitState(GetPawn<ACharacter>(), FName("TestComponentA"), BSGamePlayTags::InitState_CharacterDefinitionLoaded);
+        bool bComponentAReady = Manager->HasFeatureReachedInitState(GetPawn<ACharacter>(), FName("TestComponentA"), BSGamePlayTags::InitState_CharacterDefinitionInitialized);
         return bConfigLoaded && bComponentAReady;
     }
     
-    if (CurrentState == BSGamePlayTags::InitState_CharacterDefinitionLoaded && DesiredState == BSGamePlayTags::InitState_CharacterInitialized)
+    if (CurrentState == BSGamePlayTags::InitState_CharacterDefinitionInitialized && DesiredState == BSGamePlayTags::InitState_ASCInitialized)
     {
-        return Manager->HaveAllFeaturesReachedInitState(GetPawn<ACharacter>(), BSGamePlayTags::InitState_CharacterDefinitionLoaded);
+        return Manager->HaveAllFeaturesReachedInitState(GetPawn<ACharacter>(), BSGamePlayTags::InitState_CharacterDefinitionInitialized);
     }
     
-    if (CurrentState == BSGamePlayTags::InitState_CharacterInitialized && DesiredState == BSGamePlayTags::InitState_GameplayReady)
+    if (CurrentState == BSGamePlayTags::InitState_ASCInitialized && DesiredState == BSGamePlayTags::InitState_GameplayReady)
     {
-        return Manager->HaveAllFeaturesReachedInitState(GetPawn<ACharacter>(), BSGamePlayTags::InitState_CharacterInitialized);
+        return Manager->HaveAllFeaturesReachedInitState(GetPawn<ACharacter>(), BSGamePlayTags::InitState_ASCInitialized);
     }
 
     return false;
@@ -81,11 +81,11 @@ void UTestComponentB::HandleChangeInitState(UGameFrameworkComponentManager* Mana
         UE_LOG(LogBSInitState, Error, TEXT("[TestComponentB] ✅ Spawned - 설정 로딩 시작 (A 대기중...)"));
         LoadConfiguration();
     }
-    else if (DesiredState == BSGamePlayTags::InitState_CharacterDefinitionLoaded)
+    else if (DesiredState == BSGamePlayTags::InitState_CharacterDefinitionInitialized)
     {
         UE_LOG(LogBSInitState, Error, TEXT("[TestComponentB] ✅ DataAvailable - A 의존성 확인 후 준비 완료"));
     }
-    else if (DesiredState == BSGamePlayTags::InitState_CharacterInitialized)
+    else if (DesiredState == BSGamePlayTags::InitState_ASCInitialized)
     {
         UE_LOG(LogBSInitState, Error, TEXT("[TestComponentB] ✅ DataInitialized - 기능 설정"));
         SetupMyFeatures();
@@ -111,8 +111,8 @@ void UTestComponentB::CheckDefaultInitialization()
 {
     static const TArray<FGameplayTag> StateChain = {
         BSGamePlayTags::InitState_Spawned,
-        BSGamePlayTags::InitState_CharacterDefinitionLoaded,
-        BSGamePlayTags::InitState_CharacterInitialized,
+        BSGamePlayTags::InitState_CharacterDefinitionInitialized,
+        BSGamePlayTags::InitState_ASCInitialized,
         BSGamePlayTags::InitState_GameplayReady
     };
 

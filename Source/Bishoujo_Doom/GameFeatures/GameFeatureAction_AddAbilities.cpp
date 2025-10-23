@@ -7,7 +7,7 @@
 #include "BSLogChannels.h"
 #include "EngineUtils.h"
 #include "GameFeaturesSubsystem.h"
-#include "AbilitySystem/BSAbilitySet.h"
+#include "AbilitySystem/Abilities/BSAbilitySet.h"
 #include "Character/BSCharacter.h"
 
 void UGameFeatureAction_AddAbilities::OnGameFeatureActivating(FGameFeatureActivatingContext& Context)
@@ -104,7 +104,7 @@ void UGameFeatureAction_AddAbilities::AddActorAbilities(AActor* InActor, const F
 		const UBSAbilitySet* LoadAbilitySet = AbilitySet.LoadSynchronous();
 		if (IsValid(LoadAbilitySet))
 		{
-			for (auto GrantAbility : LoadAbilitySet->GrantedGameplayAbilitiesWithInputTag)
+			for (auto GrantAbility : LoadAbilitySet->GrantAbilitiesWithInputTag)
 			{
 				FGameplayAbilitySpec Spec(GrantAbility.Ability, GrantAbility.AbilityLevel, INDEX_NONE, InActor);
 				Spec.GetDynamicSpecSourceTags().AddTag(GrantAbility.InputTag);

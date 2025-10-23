@@ -11,8 +11,6 @@
 ABSGameState::ABSGameState()
 {
 	UE_LOG(LogBS, Log, TEXT("ABSGameStateBase::ABSGameStateBase"));
-
-	CharacterDefManagerComponent = CreateDefaultSubobject<UBSCharacterDefManagerComponent>(TEXT("CharacterDefManagerComponent"));
 }
 
 void ABSGameState::BeginPlay()

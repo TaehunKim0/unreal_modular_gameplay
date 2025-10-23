@@ -20,6 +20,8 @@ class BISHOUJO_DOOM_API UBSDebugWidget : public UUserWidget
 
 public:
 	void ShowDebugMessage(const FString& InVariableName, const FString& InDesc);
+
+	void ClearDebugMessages();
 	
 protected:
 	UPROPERTY(meta=(BindWidget))
