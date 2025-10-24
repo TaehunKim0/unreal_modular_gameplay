@@ -4,6 +4,7 @@
 #include "GameFeatures/GameFeatureAction_AddInputSet.h"
 
 #include "EngineUtils.h"
+#include "EnhancedPlayerInput.h"
 #include "GameFeaturesSubsystem.h"
 #include "Character/Component/BSPawnInputComponent.h"
 #include "Elements/Columns/TypedElementRevisionControlColumns.h"
@@ -59,12 +60,12 @@ void UGameFeatureAction_AddInputSet::OnGameFeatureDeactivating(FGameFeatureDeact
 	while (!AddedInputSetMap.IsEmpty())
 	{
 		auto It = AddedInputSetMap.CreateIterator();
-
-		if (IsValid(It->Key) && It->Key->IsValidLowLevel())
+		auto Pawn = It->Key;
+		if (IsValid(Pawn) && Pawn->IsValidLowLevel())
 		{
-			if (CastChecked<AActor>(It->Key))
+			if (CastChecked<AActor>(Pawn))
 			{
-				RemoveActorInputSet(It->Key);
+				RemoveActorInputSet(Pawn);
 				continue;
 			}
 		}
@@ -110,7 +111,7 @@ void UGameFeatureAction_AddInputSet::RemoveActorInputSet(APawn* InPawn)
 		UE_LOG(LogBS, Error, TEXT("UGameFeatureAction_AddInputSet::DefaultCharacterComp Not Found!"));
 		return;
 	}
-	
+
 	for (const int32 Handle : RemoveInputSetHandle)
 	{
 		DefaultCharacterComp->RemoveAdditionalBindAction(Handle);

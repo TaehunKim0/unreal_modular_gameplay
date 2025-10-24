@@ -6,6 +6,8 @@
 #include "BSLogChannels.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "BSPlayerController.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
 #include "AbilitySystem/Abilities/BSAbilitySet.h"
 #include "AbilitySystem/Attributes/BSHealthAttributeSet.h"
 #include "Character/BSPawnData.h"
@@ -42,6 +44,8 @@ void ABSPlayerState::PostInitializeComponents()
 	const FPrimaryAssetId DefaultCharacterDefID("Character", "Default");
 	auto NewCharacterDef = UBSAssetManager::Get().LoadCharacterDefinitionSynchronously(DefaultCharacterDefID);
 	CharacterDefData = NewCharacterDef;
+
+	
 }
 
 void ABSPlayerState::Tick(float DeltaSeconds)

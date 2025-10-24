@@ -13,6 +13,7 @@ struct FInputMappingSet
 {
 	GENERATED_BODY()
 
+public:
 	UPROPERTY(EditAnywhere, Category="InputContextMapping", meta=(AssetBundles="Client,Server"))
 	TSoftObjectPtr<UInputMappingContext> InputMappingContext;
 
@@ -24,7 +25,8 @@ USTRUCT(BlueprintType)
 struct FGameFeatureInputContextMappingEntry
 {
 	GENERATED_BODY()
-
+	
+public:
 	UPROPERTY(EditAnywhere, Category="InputContextMapping")
 	TSoftClassPtr<AActor> TargetActorClass;
 

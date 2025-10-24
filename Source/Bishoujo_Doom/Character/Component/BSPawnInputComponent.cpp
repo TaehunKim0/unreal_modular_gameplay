@@ -55,6 +55,8 @@ void UBSPawnInputComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	UnregisterInitStateFeature();
+
+	UE_LOG(LogBS, Log, TEXT("UBSPawnInputComponent::EndPlay"));
 }
 
 void UBSPawnInputComponent::InitializePlayerInput(UInputComponent* PlayerInputComponent, const UBSCharacterDefinition* InCharacterDef)
@@ -79,6 +81,7 @@ void UBSPawnInputComponent::InitializePlayerInput(UInputComponent* PlayerInputCo
 	if (const UBSInputSet* InputConfig = InCharacterDef->DefaultInputSet)
 	{
 	    UBSInputComponent* BSIC = Cast<UBSInputComponent>(PlayerInputComponent);
+		
 		// InputMappingContext
 		if (const UInputMappingContext* IMC = InCharacterDef->DefaultInputMappingContext.Get())
 		{
@@ -117,7 +120,7 @@ void UBSPawnInputComponent::RemoveAdditionalBindAction(const uint32 InBindHandle
 	UBSInputComponent* BSIC = Cast<UBSInputComponent>(GetPawn<APawn>()->FindComponentByClass<UInputComponent>());
 	if (ensureMsgf(BSIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UBSInputComponent or a subclass of it.")))
 	{
-		BSIC->RemoveActionBindingForHandle(InBindHandle);
+		BSIC->RemoveBindingByHandle(InBindHandle);
 	}
 }
 

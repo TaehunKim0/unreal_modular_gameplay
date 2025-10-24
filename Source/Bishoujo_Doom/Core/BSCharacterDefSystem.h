@@ -46,14 +46,10 @@ private:
 	// GameFeature
 	void EnableGameFeatures(ABSPlayerState* InPlayerState, const TArray<FString>& GameFeaturesNameToEnable, const UBSCharacterDefinition* NewCharacterDef);
 	void DisableGameFeatures(const TArray<FString>& GameFeaturesToDisable);
-	void DisableAllGameFeatures();
 
 	UFUNCTION()
 	void OnCharacterDefinitionChanged(const ABSPlayerState* InBSPlayerState, const UBSCharacterDefinition* InNewDefinition);
 
 public:
 	FOnCharacterDefinitionChanged OnCharacterDefinitionChangedDelegate;
-
-private:
-	TArray<FString> ActivatedGameFeatureNameArray;
 };

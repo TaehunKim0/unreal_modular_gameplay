@@ -74,7 +74,7 @@ void UGameFeatureAction_AddInputContextMapping::OnGameFeatureDeactivating(FGameF
         
         It.RemoveCurrent();
     }
-    
+
     AddedInputMappingMap.Reset();
 }
 
@@ -137,12 +137,15 @@ void UGameFeatureAction_AddInputContextMapping::RemoveInputMapping(APawn* InPawn
         return;
     }
 
-    TArray<UInputMappingContext*>& InputMappingContextArray = *AddedInputMappingMap.Find(InPawn);
-    for (const UInputMappingContext* InputMappingContext : InputMappingContextArray)
+    InputSubsystem->GetPlayerInput()->FlushPressedKeys();
+
+    auto InputMappingContextArray = AddedInputMappingMap.Find(InPawn);
+    for (const UInputMappingContext* InputMappingContext : *InputMappingContextArray)
     {
         InputSubsystem->RemoveMappingContext(InputMappingContext);
+        
         UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddInputContextMapping::액터 %s 의 IMC %s 제거 완료"), *InPawn->GetName(), *InputMappingContext->GetName());
     }
-    
+
     AddedInputMappingMap.Remove(InPawn);
 }
