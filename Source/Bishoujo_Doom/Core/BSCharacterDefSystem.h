@@ -29,19 +29,23 @@ public:
 	UBSCharacterDefSystem();
 	
 	void SetCharacterDefinition(APlayerState* InPlayerState, FGameplayTag InTag);
-	
+
 protected:
 	virtual void BeginDestroy() override;
+
+	UFUNCTION()
+	void OnActionDeactivationCompleted();
 	
 private:
 	// Definition
 	void ApplyCharacterDefinition(ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
 	void ApplyPawnData(const ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
+	void ApplyGameFeatureAction(const UBSCharacterDefinition* NewCharacterDef);
 
 	bool RespawningPawn(const ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
-	void GiveAbilitySet(const ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
 	
 	void CleanupCharacterDefinition(ABSPlayerState* PlayerState, const UBSCharacterDefinition* OldCharacterDef);
+	void DisableGameFeatureActions(const UBSCharacterDefinition* OldCharacterDef);
 	
 	// GameFeature
 	void EnableGameFeatures(ABSPlayerState* InPlayerState, const TArray<FString>& GameFeaturesNameToEnable, const UBSCharacterDefinition* NewCharacterDef);

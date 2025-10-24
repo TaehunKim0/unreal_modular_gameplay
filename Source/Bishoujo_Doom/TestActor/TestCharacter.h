@@ -20,16 +20,10 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION()
-	void OnCharacterAssetsLoaded();
-
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TSoftObjectPtr<USkeletalMesh> WeaponMesh;
 	
-	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	// USkeletalMesh* WeaponMesh;
-
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* MeshComponent;

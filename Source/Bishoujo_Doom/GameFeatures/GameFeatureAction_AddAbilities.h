@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "GameFeatureAction.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "GameFeatureAction_AddAbilities.generated.h"
 
+class UAttributeSet;
 class UBSAbilitySet;
 struct FGameplayAbilitySpecHandle;
 class UGameplayAbility;
@@ -44,5 +47,14 @@ public:
 	UPROPERTY(EditAnywhere)
 	TArray<FGameFeatureAbilitiesEntry> AbilitiesArray;
 
-	TMap<AActor*, TArray<FGameplayAbilitySpecHandle>> AddedAbilitiesMap;
+private:
+	struct FAbilitiesHandle
+	{
+		TArray<FGameplayAbilitySpecHandle> AbilitySpecArray;
+		TArray<FActiveGameplayEffectHandle> GameplayEffectHandleArray;
+		TArray<UAttributeSet*> AttributeSetArray;
+	};
+	
+	TMap<AActor*, FAbilitiesHandle> AddedAbilitiesMap;
+
 };

@@ -8,7 +8,6 @@
 #include "BSCharacterDefinition.h"
 #include "BSGameFeatureSystem.h"
 #include "BSLogChannels.h"
-#include "EnhancedInputSubsystems.h"
 #include "GameFeatureData.h"
 #include "GameFeaturesSubsystem.h"
 #include "AbilitySystem/Abilities/BSAbilitySet.h"
@@ -28,7 +27,7 @@ void UBSCharacterDefSystem::ApplyCharacterDefinition(ABSPlayerState* InPlayerSta
 	if (!NewCharacterDef) return;
 
 	ApplyPawnData(InPlayerState, NewCharacterDef);
-	GiveAbilitySet(InPlayerState, NewCharacterDef);
+	ApplyGameFeatureAction(NewCharacterDef);
 	EnableGameFeatures(InPlayerState, NewCharacterDef->GameFeaturesNameToEnable, NewCharacterDef);
 }
 
@@ -38,8 +37,36 @@ void UBSCharacterDefSystem::ApplyPawnData(const ABSPlayerState* InPlayerState,
 	RespawningPawn(InPlayerState, NewCharacterDef);
 }
 
+void UBSCharacterDefSystem::ApplyGameFeatureAction(const UBSCharacterDefinition* NewCharacterDef)
+{
+	FGameFeatureActivatingContext Context;
+	
+	// Only apply to our specific world context if set
+	const FWorldContext* ExistingWorldContext = GEngine->GetWorldContextFromWorld(GetWorld());
+	if (ExistingWorldContext)
+	{
+		Context.SetRequiredWorldContextHandle(ExistingWorldContext->ContextHandle);
+	}
+
+	if (!NewCharacterDef->DefaultActions.IsEmpty())
+	{
+		for (UGameFeatureAction* Action : NewCharacterDef->DefaultActions)
+		{
+			if (Action != nullptr)
+			{
+				//@TODO: The fact that these don't take a world are potentially problematic in client-server PIE
+				// The current behavior matches systems like gameplay tags where loading and registering apply to the entire process,
+				// but actually applying the results to actors is restricted to a specific world
+				Action->OnGameFeatureRegistering();
+				Action->OnGameFeatureLoading();
+				Action->OnGameFeatureActivating(Context);
+			}
+		}
+	}
+}
+
 bool UBSCharacterDefSystem::RespawningPawn(const ABSPlayerState* InPlayerState,
-	const UBSCharacterDefinition* NewCharacterDef)
+                                           const UBSCharacterDefinition* NewCharacterDef)
 {
 	APawn* CurrentPawn = InPlayerState->GetPawn();
 	if (!IsValid(CurrentPawn))
@@ -97,47 +124,6 @@ bool UBSCharacterDefSystem::RespawningPawn(const ABSPlayerState* InPlayerState,
 	return true;
 }
 
-void UBSCharacterDefSystem::GiveAbilitySet(const ABSPlayerState* InPlayerState,	const UBSCharacterDefinition* NewCharacterDef)
-{
-	UAbilitySystemComponent* ASC = InPlayerState->GetAbilitySystemComponent();
-	ensure(ASC);
-
-	// GameplayAbility
-	if (!NewCharacterDef->DefaultAbilitySet)
-	{
-		UE_LOG(LogBS, Warning, TEXT("UBSCharacterDefSystem::DefaultAbilitySet is nullptr"));
-		return;
-	}
-		
-	for (const FBSAbilitySet_GameplayAbility& BSGrantAbility : NewCharacterDef->DefaultAbilitySet->GrantAbilitiesWithInputTag)
-	{
-		FGameplayAbilitySpec Spec(BSGrantAbility.Ability, BSGrantAbility.AbilityLevel, INDEX_NONE, InPlayerState->GetOwner());
-		Spec.GetDynamicSpecSourceTags().AddTag(BSGrantAbility.InputTag);
-				
-		FGameplayAbilitySpecHandle AbilityHandle = ASC->GiveAbility(Spec);
-	}
-
-	// Attribute
-	for (const FBSAbilitySet_AttributeSet BSAttributeSet : InPlayerState->GetCharacterDefData()->DefaultAbilitySet->GrantAttributeSets)
-	{
-		if (BSAttributeSet.AttributeSet)
-		{
-			UAttributeSet* NewSet = NewObject<UAttributeSet>(ASC->GetOwner(), BSAttributeSet.AttributeSet);
-			ASC->AddAttributeSetSubobject(NewSet);
-		}
-	}
-
-	// GameplayEffect
-	for (const FBSAbilitySet_GameplayEffect EffectToGrant : InPlayerState->GetCharacterDefData()->DefaultAbilitySet->GrantGameplayEffects)
-	{
-		if (EffectToGrant.GameplayEffect)
-		{
-			const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
-			const FActiveGameplayEffectHandle GameplayEffectHandle = ASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, ASC->MakeEffectContext());
-		}
-	}
-}
-
 void UBSCharacterDefSystem::SetCharacterDefinition(APlayerState* InPlayerState,
                                                    const FGameplayTag InTag)
 {
@@ -191,8 +177,13 @@ void UBSCharacterDefSystem::BeginDestroy()
 	Super::BeginDestroy();
 }
 
+void UBSCharacterDefSystem::OnActionDeactivationCompleted()
+{
+	UE_LOG(LogBS, Warning, TEXT("UBSCharacterDefSystem::OnActionDeactivationCompleted"));
+}
+
 void UBSCharacterDefSystem::CleanupCharacterDefinition(ABSPlayerState* PlayerState,
-                                                                 const UBSCharacterDefinition* OldCharacterDef)
+                                                       const UBSCharacterDefinition* OldCharacterDef)
 {
 	if (!OldCharacterDef) return;
 
@@ -206,13 +197,39 @@ void UBSCharacterDefSystem::CleanupCharacterDefinition(ABSPlayerState* PlayerSta
 	// 1. GameFeatures 비활성화
 	DisableGameFeatures(OldCharacterDef->GameFeaturesNameToEnable);
 
+	// 2. DefaultGameFeatureActions 비활성화
+	DisableGameFeatureActions(OldCharacterDef);
+
 	// 2. CharacterDefinition 언로드
 	const FPrimaryAssetId CharacterDefID("Character", OldCharacterDef->CharacterTag.GetTagLeafName());
 	UBSAssetManager::Get().UnloadPrimaryAsset(CharacterDefID);
 }
 
+void UBSCharacterDefSystem::DisableGameFeatureActions(const UBSCharacterDefinition* OldCharacterDef)
+{
+	// Deactivate and unload the actions
+	FGameFeatureDeactivatingContext Context(TEXT(""), [this](FStringView) { this->OnActionDeactivationCompleted(); });
+	const FWorldContext* ExistingWorldContext = GEngine->GetWorldContextFromWorld(GetWorld());
+	if (ExistingWorldContext)
+	{
+		Context.SetRequiredWorldContextHandle(ExistingWorldContext->ContextHandle);
+	}
+
+	if (!OldCharacterDef->DefaultActions.IsEmpty())
+	{
+		for (UGameFeatureAction* Action : OldCharacterDef->DefaultActions)
+		{
+			if (Action != nullptr)
+			{
+				Action->OnGameFeatureDeactivating(Context);
+				Action->OnGameFeatureUnregistering();
+			}
+		}
+	}
+}
+
 void UBSCharacterDefSystem::EnableGameFeatures(ABSPlayerState* InPlayerState,
-	const TArray<FString>& GameFeaturesNameToEnable, const UBSCharacterDefinition* NewCharacterDef)
+                                               const TArray<FString>& GameFeaturesNameToEnable, const UBSCharacterDefinition* NewCharacterDef)
 {
 	if (const auto BSGameFeatureSystem = GetWorld()->GetGameInstance<UGameInstance>()->GetSubsystem<UBSGameFeatureSystem>())
 	{

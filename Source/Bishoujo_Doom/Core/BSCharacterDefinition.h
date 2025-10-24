@@ -33,18 +33,18 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UBSCharacterDefinition")
 	FGameplayTag CharacterTag;
+
+	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
+	TObjectPtr<const UBSPawnData> PawnData;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UBSCharacterDefinition")
 	TArray<FString> GameFeaturesNameToEnable;
 
-	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
-	TObjectPtr<const UBSPawnData> PawnData;
+	UPROPERTY(EditDefaultsOnly, Instanced, Category="UBSCharacterDefinition")
+	TArray<TObjectPtr<UGameFeatureAction>> DefaultActions;
 
 	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
 	TObjectPtr<const UBSInputSet> DefaultInputSet;
-
-	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
-	TObjectPtr<const UBSAbilitySet> DefaultAbilitySet;
 
 	UPROPERTY(EditDefaultsOnly, Category="UBSCharacterDefinition")
 	TObjectPtr<const UInputMappingContext> DefaultInputMappingContext;

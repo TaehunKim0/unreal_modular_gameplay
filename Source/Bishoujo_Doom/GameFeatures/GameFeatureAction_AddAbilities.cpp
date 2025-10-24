@@ -98,27 +98,65 @@ void UGameFeatureAction_AddAbilities::AddActorAbilities(AActor* InActor, const F
 		return;
 	}
 
-	TArray<FGameplayAbilitySpecHandle>& AbilitySpecHandles = AddedAbilitiesMap.FindOrAdd(InActor);
+	FAbilitiesHandle& AbilitiesHandle = AddedAbilitiesMap.FindOrAdd(InActor);
+	
 	for (auto AbilitySet : InAbilitiesEntry.GrantAbilitySets)
 	{
 		const UBSAbilitySet* LoadAbilitySet = AbilitySet.LoadSynchronous();
 		if (IsValid(LoadAbilitySet))
 		{
-			for (auto GrantAbility : LoadAbilitySet->GrantAbilitiesWithInputTag)
+			// Ability
+			for (auto AbilityToGrant : LoadAbilitySet->GrantAbilitiesWithInputTag)
 			{
-				FGameplayAbilitySpec Spec(GrantAbility.Ability, GrantAbility.AbilityLevel, INDEX_NONE, InActor);
-				Spec.GetDynamicSpecSourceTags().AddTag(GrantAbility.InputTag);
+				FGameplayAbilitySpec Spec(AbilityToGrant.Ability, AbilityToGrant.AbilityLevel, INDEX_NONE, InActor);
+				Spec.GetDynamicSpecSourceTags().AddTag(AbilityToGrant.InputTag);
 				
 				FGameplayAbilitySpecHandle AbilityHandle = ASC->GiveAbility(Spec);
 
 				if (AbilityHandle.IsValid())
 				{
-					AbilitySpecHandles.Add(AbilityHandle);
-					UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 어빌리티 %s 부여 성공"), *InActor->GetName(), *GrantAbility.Ability->GetName());
+					AbilitiesHandle.AbilitySpecArray.Add(AbilityHandle);
+					UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 어빌리티 %s 부여 성공"), *InActor->GetName(), *AbilityToGrant.Ability->GetName());
 				}
 				else
 				{
-					UE_LOG(LogBS, Error, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 어빌리티 %s 부여 실패"), *InActor->GetName(), *GrantAbility.Ability->GetName());
+					UE_LOG(LogBS, Error, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 어빌리티 %s 부여 실패"), *InActor->GetName(), *AbilityToGrant.Ability->GetName());
+				}
+			}
+
+			// GameplayEffect
+			for (auto GameplayEffectToGrant : LoadAbilitySet->GrantGameplayEffects)
+			{
+				const UGameplayEffect* GameplayEffect = GameplayEffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
+				const FActiveGameplayEffectHandle GameplayEffectHandle = ASC->ApplyGameplayEffectToSelf(GameplayEffect, GameplayEffectToGrant.EffectLevel, ASC->MakeEffectContext());
+
+				if (GameplayEffectHandle.IsValid())
+				{
+					AbilitiesHandle.GameplayEffectHandleArray.Add(GameplayEffectHandle);
+					UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 게임플레이 이펙트 %s 부여 성공"), *InActor->GetName(), *GameplayEffectToGrant.GameplayEffect->GetName());
+				}
+				else
+				{
+					UE_LOG(LogBS, Error, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 게임플레이 이펙트 %s 부여 실패"), *InActor->GetName(), *GameplayEffectToGrant.GameplayEffect->GetName());
+				}
+			}
+
+			// Attribute
+			for (auto AttributeToGrant : LoadAbilitySet->GrantAttributeSets)
+			{
+				UAttributeSet* NewAttributeSet = NewObject<UAttributeSet>(ASC, AttributeToGrant.AttributeSet);
+				if (NewAttributeSet)
+				{
+					const auto ResultAttributeSet = ASC->AddAttributeSetSubobject(NewAttributeSet);
+					if (ResultAttributeSet)
+					{
+						AbilitiesHandle.AttributeSetArray.Add(NewAttributeSet);
+						UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 게임플레이 어트리뷰트 %s 부여 성공"), *InActor->GetName(), *AttributeToGrant.AttributeSet->GetName());
+					}
+					else
+					{
+						UE_LOG(LogBS, Error, TEXT("UGameFeatureAction_AddAbilities::액터 %s에 게임플레이 어트리뷰트 %s 부여 실패"), *InActor->GetName(), *AttributeToGrant.AttributeSet->GetName());
+					}
 				}
 			}
 		}
@@ -147,9 +185,10 @@ void UGameFeatureAction_AddAbilities::RemoveActorAbilities(AActor* InActor)
 		return;
 	}
 	
-	if (const auto ActorAbilitieHandles = AddedAbilitiesMap.Find(InActor))
+	if (const auto AbilitiesHandle = AddedAbilitiesMap.Find(InActor))
 	{
-		for (const FGameplayAbilitySpecHandle AbilityHandle : *ActorAbilitieHandles)
+		// Ability
+		for (const FGameplayAbilitySpecHandle& AbilityHandle : AbilitiesHandle->AbilitySpecArray)
 		{
 			if (AbilityHandle.IsValid())
 			{
@@ -158,7 +197,30 @@ void UGameFeatureAction_AddAbilities::RemoveActorAbilities(AActor* InActor)
 			}
 		}
 
+		// GameplayEffect
+		for (const FActiveGameplayEffectHandle& EffectHandle : AbilitiesHandle->GameplayEffectHandleArray)
+		{
+			if (EffectHandle.IsValid())
+			{
+				ASC->RemoveActiveGameplayEffect(EffectHandle);
+				UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAbilities::액터 %s 의 게임플레이 이펙트 %s 제거 완료"), *InActor->GetName(), *EffectHandle.ToString());
+			}
+		}
+
+		// Attribute
+		for (UAttributeSet* AttributeSet : AbilitiesHandle->AttributeSetArray)
+		{
+			if (AttributeSet)
+			{
+				ASC->RemoveSpawnedAttribute(AttributeSet);
+				UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAbilities::액터 %s 의 어트리뷰트 %s 제거 완료"), *InActor->GetName(), *AttributeSet->GetFName().ToString());
+			}
+		}
+
+		AbilitiesHandle->AbilitySpecArray.Reset();
+		AbilitiesHandle->GameplayEffectHandleArray.Reset();
+		AbilitiesHandle->AttributeSetArray.Reset();
+		
 		AddedAbilitiesMap.Remove(InActor);
 	}
-	
 }
