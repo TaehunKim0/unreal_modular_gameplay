@@ -3,8 +3,8 @@
 - [x] Async Load DataRegistry and Set Data
 - [x] Using GameFeaturePlugin
 - [x] Add GameFeatureAction
-    - [x] Add Abilities
-    - [ ] Add Attributes
+    - [] Add Abilities
+          - [ ] AbilitySet (Ability, Attribute, GameplayEffect)
     - [x] Add InputMappingContext
     - [x] Add InputSet (InputAction + GamePlayTag(InputTag))
     - [x] Add Widgets
