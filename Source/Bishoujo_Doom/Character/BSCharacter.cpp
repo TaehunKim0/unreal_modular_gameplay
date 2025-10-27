@@ -131,7 +131,7 @@ UAbilitySystemComponent* ABSCharacter::GetAbilitySystemComponent() const
 void ABSCharacter::OnPawnGameplayReadyComplete()
 {
 	UBSPlayerUISubSystem::Get(this)->CreateWidget<UBSDebugWidget>(DebugWidgetClass, EUICategory::Debug, GetPlayerState()->GetPlayerController());
-
+	
 	const auto BSPlayerState = Cast<ABSPlayerState>(GetPlayerState());
 	UBSPlayerUISubSystem::Get(this)->ShowPawnAbilitySetMessage(BSPlayerState, BSPlayerState->GetCharacterDefData());
 }

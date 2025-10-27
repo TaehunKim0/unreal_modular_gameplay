@@ -20,6 +20,8 @@ void UBSPlayerUISubSystem::Initialize(FSubsystemCollectionBase& Collection)
 void UBSPlayerUISubSystem::Deinitialize()
 {
 	RemoveAllWidgets();
+
+	UE_LOG(LogBS, Log, TEXT("UBSPlayerUISubSystem::Deinitialize"));
 	
 	Super::Deinitialize();
 }
@@ -40,6 +42,7 @@ void UBSPlayerUISubSystem::RemoveWidget(EUICategory InCategory)
 		ActiveWidgetMap.Remove(InCategory);
 	}
 }
+
 
 void UBSPlayerUISubSystem::HideWidget(EUICategory InCategory)
 {

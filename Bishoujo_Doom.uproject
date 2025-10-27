@@ -44,15 +44,15 @@
 			"Enabled": true
 		},
 		{
-			"Name": "Ellie",
-			"Enabled": true
-		},
-		{
-			"Name": "Joel",
-			"Enabled": true
-		},
-		{
 			"Name": "Movement_Standard",
+			"Enabled": true
+		},
+		{
+			"Name": "ItemShop",
+			"Enabled": true
+		},
+		{
+			"Name": "DLC_SpecialEdition",
 			"Enabled": true
 		}
 	]

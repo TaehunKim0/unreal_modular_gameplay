@@ -31,23 +31,39 @@ void UBSGameFeatureSystem::EnableGameFeature(
 
 }
 
-void UBSGameFeatureSystem::DisableGameFeatures(const TArray<FString>& GameFeaturesToDisable)
+void UBSGameFeatureSystem::K2_EnableGameFeature(const FString& GameFeatureNameToEnable)
+{
+	EnableGameFeature(
+		GameFeatureNameToEnable,
+		FGameFeaturePluginLoadComplete{},
+		FGameFeaturePluginLoadComplete::CreateLambda([GameFeatureNameToEnable](const UE::GameFeatures::FResult& Result)
+		{
+			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Activated : %s"), *GameFeatureNameToEnable);
+		}));
+}
+
+void UBSGameFeatureSystem::DisableGameFeature(const FString& GameFeatureToDisable)
 {
 	UGameFeaturesSubsystem* GameFeatureSubsystem = GEngine->GetEngineSubsystem<UGameFeaturesSubsystem>();
 	if (!IsValid(GameFeatureSubsystem))
 	{
 		UE_LOG(LogBS, Error, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem is not valid"));
 	}
+	
+	FString PluginURL;
+	UGameFeaturesSubsystem::Get().GetPluginURLByName(GameFeatureToDisable, PluginURL);
 
+	UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::Deactivating GameFeature: %s"), *GameFeatureToDisable);
+	
+	OnPluginDeactivateCompleteDelegate.BindUObject(this, &UBSGameFeatureSystem::OnGameFeaturePluginDeactivateComplete);
+	GameFeatureSubsystem->DeactivateGameFeaturePlugin(PluginURL, OnPluginDeactivateCompleteDelegate);
+}
+
+void UBSGameFeatureSystem::DisableGameFeatures(const TArray<FString>& GameFeaturesToDisable)
+{
 	for (const FString& FeatureName : GameFeaturesToDisable)
 	{
-		FString PluginURL;
-		UGameFeaturesSubsystem::Get().GetPluginURLByName(FeatureName, PluginURL);
-
-		UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::Deactivating GameFeature: %s"), *FeatureName);
-		
-		OnPluginDeactivateCompleteDelegate.BindUObject(this, &UBSGameFeatureSystem::OnGameFeaturePluginDeactivateComplete);
-		GameFeatureSubsystem->DeactivateGameFeaturePlugin(PluginURL, OnPluginDeactivateCompleteDelegate);
+		DisableGameFeature(FeatureName);
 	}
 }
 
@@ -69,6 +85,72 @@ void UBSGameFeatureSystem::DisableAllGameFeatures()
 	}
 
 	DisableGameFeatures(PluginNames);
+}
+
+void UBSGameFeatureSystem::K2_DisableGameFeature(const FString& GameFeatureNameToEnable)
+{
+	DisableGameFeature(GameFeatureNameToEnable);
+}
+
+void UBSGameFeatureSystem::UnLoadGameFeature(const FString& GameFeatureToUnLoad)
+{
+	UGameFeaturesSubsystem* GameFeatureSubsystem = GEngine->GetEngineSubsystem<UGameFeaturesSubsystem>();
+	if (!GameFeatureSubsystem)
+	{
+		UE_LOG(LogBS, Error, TEXT("UBSGameFeatureSystem Get is Failed"));
+		return;
+	}
+
+	GameFeatureSubsystem->UnloadGameFeaturePlugin(
+		GetPluginURLByName(GameFeatureToUnLoad),
+		FGameFeaturePluginLoadComplete::CreateLambda([GameFeatureToUnLoad](const UE::GameFeatures::FResult& Result)
+		{
+			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Unload : %s"), *GameFeatureToUnLoad);
+	}));
+}
+
+void UBSGameFeatureSystem::K2_UnLoadGameFeature(const FString& GameFeatureToUnLoad)
+{
+	UnLoadGameFeature(GameFeatureToUnLoad);
+}
+
+void UBSGameFeatureSystem::ReleaseGameFeature(const FString& GameFeatureToRelease)
+{
+	UGameFeaturesSubsystem* GameFeatureSubsystem = GEngine->GetEngineSubsystem<UGameFeaturesSubsystem>();
+	if (!GameFeatureSubsystem)
+	{
+		UE_LOG(LogBS, Error, TEXT("UBSGameFeatureSystem Get is Failed"));
+		return;
+	}
+
+	GameFeatureSubsystem->ReleaseGameFeaturePlugin(
+		GetPluginURLByName(GameFeatureToRelease),
+		FGameFeaturePluginReleaseComplete::CreateLambda([GameFeatureToRelease](const UE::GameFeatures::FResult& Result)
+		{
+			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Released : %s"), *GameFeatureToRelease);
+		}));
+}
+
+void UBSGameFeatureSystem::K2_ReleaseGameFeature(const FString& GameFeatureToRelease)
+{
+	ReleaseGameFeature(GameFeatureToRelease);
+}
+
+bool UBSGameFeatureSystem::K2_IsGameFeatureActive(const FString& InGameFeatureName)
+{
+	return IsGameFeatureActive(InGameFeatureName);	
+}
+
+bool UBSGameFeatureSystem::IsGameFeatureActive(const FString& InGameFeatureName)
+{
+	UGameFeaturesSubsystem* GameFeatureSubsystem = GEngine->GetEngineSubsystem<UGameFeaturesSubsystem>();
+	if (!GameFeatureSubsystem)
+	{
+		UE_LOG(LogBS, Error, TEXT("UBSGameFeatureSystem Get is Failed"));
+		return false;
+	}
+
+	return GameFeatureSubsystem->IsGameFeaturePluginActive(GetPluginURLByName(InGameFeatureName));
 }
 
 FString UBSGameFeatureSystem::GetPluginURLByName(FString InFeatureName) const
