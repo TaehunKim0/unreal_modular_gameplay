@@ -25,7 +25,8 @@ public class ItemShopRuntime : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "GameplayTags",
+				"Core", 
+				"GameplayTags",
 				"Bishoujo_Doom"
 				// ... add other public dependencies that you statically link with here ...
 			}

@@ -113,19 +113,14 @@ const TArray<FItemDataRow> UBSItemShopSystem::GetAllItems()
 {
 	TArray<FItemDataRow> AllItemData;
 	TArray<FPrimaryAssetId> RemoveItemId;
-
-	/*
-	*Add_DataRegistry 를 먼저 Deactive하고
-	Add_DataRegistrySource 를 Deactve  해서 
-
-	DataRegistry 에 등록된 소스들이 먼저 다 해제 됐나봐
-	 */
+	
 	for (FPrimaryAssetId& ItemId : CachedItemIds)
 	{
 		FItemDataRow OutItemData;
 		auto bResult = GetCachedItemData(ItemId, OutItemData);
 		if (!bResult)
 		{
+			// Registry가 해제되어 접근 불가능한 아이템
 			RemoveItemId.Add(ItemId);
 			continue;
 		}

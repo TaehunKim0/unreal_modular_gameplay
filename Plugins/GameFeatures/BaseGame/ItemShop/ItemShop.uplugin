@@ -2,11 +2,11 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "Joel",
+	"FriendlyName": "ItemShop",
 	"Description": "",
 	"Category": "Game Features",
-	"CreatedBy": "Joel",
-	"CreatedByURL": "Joel",
+	"CreatedBy": "",
+	"CreatedByURL": "",
 	"DocsURL": "",
 	"MarketplaceURL": "",
 	"SupportURL": "",
@@ -17,9 +17,15 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "JoelRuntime",
+			"Name": "ItemShopRuntime",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "DataRegistry",
+			"Enabled": true
 		}
 	],
 	"ExplicitlyLoaded": true,
