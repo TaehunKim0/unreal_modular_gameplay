@@ -15,6 +15,7 @@ enum EUICategory : uint8
 {
 	Debug,
 	CharacterSelection,
+	ItemShop,
 	None
 };
 /**

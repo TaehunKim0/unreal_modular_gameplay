@@ -41,10 +41,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BS|PlayerState")
 	ABSPlayerController* GetBSPlayerController() const;
 
-public:
-	UPROPERTY(Replicated)
-	FString PendingCharacterPluginName;
-	
 protected:
 	UPROPERTY()
 	TObjectPtr<const UBSCharacterDefinition> CharacterDefData;

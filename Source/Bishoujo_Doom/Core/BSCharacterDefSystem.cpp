@@ -243,7 +243,6 @@ void UBSCharacterDefSystem::EnableGameFeatures(ABSPlayerState* InPlayerState,
 					UE_LOG(LogBS, Log, TEXT("GameFeature loaded successfully: %s"), *PluginURL);
 					
 					UGameFeaturesSubsystem& GameFeatureSubsystem = UGameFeaturesSubsystem::Get();
-					GameFeatureSubsystem.GetGameFeatureDataForRegisteredPluginByURL(PluginURL)->GetPluginName(InPlayerState->PendingCharacterPluginName);
 				}),
 
 				FGameFeaturePluginLoadComplete::CreateLambda([this, InPlayerState, FeatureName, NewCharacterDef](const UE::GameFeatures::FResult& Result)
@@ -252,8 +251,6 @@ void UBSCharacterDefSystem::EnableGameFeatures(ABSPlayerState* InPlayerState,
 					UE_LOG(LogBS, Log, TEXT("GameFeature Active successfully: %s"), *FeatureName);
 					
 					InPlayerState->SetCharacterDefData(NewCharacterDef);
-					InPlayerState->PendingCharacterPluginName.Reset();
-
 					OnCharacterDefinitionChangedDelegate.Broadcast(InPlayerState, NewCharacterDef);
 				}));
 		}
@@ -262,8 +259,6 @@ void UBSCharacterDefSystem::EnableGameFeatures(ABSPlayerState* InPlayerState,
 	if (GameFeaturesNameToEnable.IsEmpty())
 	{
 		InPlayerState->SetCharacterDefData(NewCharacterDef);
-		InPlayerState->PendingCharacterPluginName.Reset();
-				
 		OnCharacterDefinitionChangedDelegate.Broadcast(InPlayerState, NewCharacterDef);
 	}
 }

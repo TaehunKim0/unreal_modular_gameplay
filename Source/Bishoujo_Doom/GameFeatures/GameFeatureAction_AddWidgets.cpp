@@ -30,10 +30,6 @@ void UGameFeatureAction_AddWidgets::OnGameFeatureActivating(FGameFeatureActivati
         return;
     }
 
-    FString PluginName;
-    GetGameFeatureData()->GetPluginName(PluginName);
-
-    FPerContextData& ActiveData = ContextData.FindOrAdd(Context);
     for (const FWorldContext& WorldContext : GEngine->GetWorldContexts())
     {
         if (Context.ShouldApplyToWorldContext(WorldContext))
@@ -42,19 +38,19 @@ void UGameFeatureAction_AddWidgets::OnGameFeatureActivating(FGameFeatureActivati
             {
                 for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
                 {
-                    if (APlayerController* PC = Iterator->Get())
+                    for (auto WidgetEntry : Widgets)
                     {
-                        if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
+                        if (APlayerController* PC = Iterator->Get())
                         {
-                            const auto PS = PC->GetPlayerState<APlayerState>();
-                            if (!IsValid(PS))
+                            auto TargetClass = WidgetEntry.TargetActorClass.LoadSynchronous();
+                            auto Pawn = PC->GetPawn();
+                            
+                            if (Pawn && Pawn->IsA(TargetClass))
                             {
-                                continue;
-                            }
-
-                            if (FGameFeatureActionFilter::CanApplyFeatureAction(PluginName, PS))
-                            {
-                                AddWidgetsForPlayer(LP, ActiveData);
+                                if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
+                                {
+                                    AddWidgetsForPlayer(LP);
+                                }
                             }
                         }
                     }
@@ -69,43 +65,29 @@ void UGameFeatureAction_AddWidgets::OnGameFeatureActivating(FGameFeatureActivati
 void UGameFeatureAction_AddWidgets::OnGameFeatureDeactivating(FGameFeatureDeactivatingContext& Context)
 {
     Super::OnGameFeatureDeactivating(Context);
-
-    if (FPerContextData* ActiveData = ContextData.Find(Context))
+    
+    while (!AddedWidgets.IsEmpty())
     {
-        // Remove widgets from all players
-        for (const FWorldContext& WorldContext : GEngine->GetWorldContexts())
+        auto It = AddedWidgets.CreateIterator();
+        auto LocalPlayer = It->Key;
+        if (IsValid(LocalPlayer) && LocalPlayer->IsValidLowLevel())
         {
-            if (Context.ShouldApplyToWorldContext(WorldContext))
-            {
-                if (UWorld* World = WorldContext.World())
-                {
-                    for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
-                    {
-                        if (APlayerController* PC = Iterator->Get())
-                        {
-                            if (ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player))
-                            {
-                                RemoveWidgetsForPlayer(LP, *ActiveData);
-                            }
-                        }
-                    }
-                }
-            }
+            RemoveWidgetsForPlayer(LocalPlayer);
+            continue;
         }
 
-        ContextData.Remove(Context);
+        It.RemoveCurrent();
     }
+    
+    AddedWidgets.Reset();
 }
 
 void UGameFeatureAction_AddWidgets::OnGameFeatureUnregistering()
 {
     Super::OnGameFeatureUnregistering();
-    
-    // Clean up any remaining context data
-    ContextData.Empty();
 }
 
-void UGameFeatureAction_AddWidgets::AddWidgetsForPlayer(UPlayer* Player, FPerContextData& ActiveData)
+void UGameFeatureAction_AddWidgets::AddWidgetsForPlayer(UPlayer* Player)
 {
     ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
     if (!LocalPlayer)
@@ -119,7 +101,6 @@ void UGameFeatureAction_AddWidgets::AddWidgetsForPlayer(UPlayer* Player, FPerCon
         return;
     }
 
-    // Load and create widgets
     TArray<FSoftObjectPath> WidgetClassPaths;
     for (const FGameFeatureWidgetEntry& Entry : Widgets)
     {
@@ -133,11 +114,11 @@ void UGameFeatureAction_AddWidgets::AddWidgetsForPlayer(UPlayer* Player, FPerCon
     {
         FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
         StreamableManager.RequestAsyncLoad(WidgetClassPaths, FStreamableDelegate::CreateUObject(
-            this, &UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded, Player, ActiveData));
+            this, &UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded, Player));
     }
 }
 
-void UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded(UPlayer* Player, FPerContextData ActiveData)
+void UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded(UPlayer* Player)
 {
     ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
     if (!LocalPlayer)
@@ -155,22 +136,36 @@ void UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded(UPlayer* Player, FPerC
     {
         if (const TSubclassOf<UUserWidget> WidgetClass = Entry.WidgetClass.Get())
         {
-            UBSPlayerUISubSystem::Get(PlayerController)->CreateWidget<UUserWidget>(WidgetClass, Entry.WidgetCategory, PlayerController);
+            auto ResultWidget = UBSPlayerUISubSystem::Get(PlayerController)->CreateWidget<UUserWidget>(WidgetClass, Entry.WidgetCategory, PlayerController);
+            if (!ResultWidget)
+            {
+                UE_LOG(LogBS, Error, TEXT("UGameFeatureAction_AddWidgets::Cannot CreateWidget"));
+            }
+            
+            auto& Category = AddedWidgets.FindOrAdd(LocalPlayer);
+            Category = Entry.WidgetCategory;
         }
     }
 }
 
-void UGameFeatureAction_AddWidgets::RemoveWidgetsForPlayer(UPlayer* Player, FPerContextData& ActiveData)
+void UGameFeatureAction_AddWidgets::RemoveWidgetsForPlayer(UPlayer* Player)
 {
-    // Remove all added widgets
-    for (TWeakObjectPtr<UUserWidget>& WidgetPtr : ActiveData.AddedWidgets)
+    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+    if (!LocalPlayer)
     {
-        if (UUserWidget* Widget = WidgetPtr.Get())
-        {
-            Widget->RemoveFromParent();
-        }
+        return;
     }
     
-    ActiveData.AddedWidgets.Empty();
-}
+    APlayerController* PlayerController = LocalPlayer->GetPlayerController(GetWorld());
+    if (!PlayerController)
+    {
+        return;
+    }
+    
+    auto Category = AddedWidgets.Find(LocalPlayer);
 
+    if (UBSPlayerUISubSystem::Get(PlayerController))
+        UBSPlayerUISubSystem::Get(PlayerController)->RemoveWidget(*Category);
+
+    AddedWidgets.Remove(LocalPlayer);
+}

@@ -29,16 +29,16 @@ bool FGameFeatureActionFilter::CanApplyFeatureAction(FString& InPluginName, cons
 		return false;
 	}
 
-	if (BSPlayerState->PendingCharacterPluginName == InPluginName)
-	{
-		UE_LOG(LogBS, Log, TEXT("CanApplyFeatureAction::Target PlayerState Can Applying"));
-		return true;
-	}
-
-	if (BSPlayerState->PendingCharacterPluginName.IsEmpty())
-	{
-		UE_LOG(LogBS, Error, TEXT("CanApplyFeatureAction::PendingCharacterPluginName is Empty"));
-	}
+	// if (BSPlayerState->PendingCharacterPluginName == InPluginName)
+	// {
+	// 	UE_LOG(LogBS, Log, TEXT("CanApplyFeatureAction::Target PlayerState Can Applying"));
+	// 	return true;
+	// }
+	//
+	// if (BSPlayerState->PendingCharacterPluginName.IsEmpty())
+	// {
+	// 	UE_LOG(LogBS, Error, TEXT("CanApplyFeatureAction::PendingCharacterPluginName is Empty"));
+	// }
 
 	return false;
 }

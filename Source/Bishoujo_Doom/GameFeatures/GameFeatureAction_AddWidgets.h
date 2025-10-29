@@ -21,6 +21,9 @@ struct FGameFeatureWidgetEntry
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 	TSoftClassPtr<UUserWidget> WidgetClass;
 
+	UPROPERTY(EditAnywhere, Category="Widget")
+	TSoftClassPtr<AActor> TargetActorClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 	TEnumAsByte<EUICategory> WidgetCategory = EUICategory::None;
 
@@ -52,20 +55,13 @@ public:
 	virtual void OnGameFeatureUnregistering() override;
 	//~End of UGameFeatureAction interface
 
-	// Array of widgets to add
 	UPROPERTY(EditAnywhere, Category = "UI", meta = (TitleProperty = "SlotTag"))
 	TArray<FGameFeatureWidgetEntry> Widgets;
 
 private:
-	struct FPerContextData
-	{
-		TArray<TWeakObjectPtr<UUserWidget>> AddedWidgets;
-		FDelegateHandle ExtensionRequestHandle;
-	};
-
-	TMap<FGameFeatureStateChangeContext, FPerContextData> ContextData;
-
-	void AddWidgetsForPlayer(UPlayer* Player, FPerContextData& ActiveData);
-	void OnWidgetClassesLoaded(UPlayer* Player, FPerContextData ActiveData);
-	void RemoveWidgetsForPlayer(UPlayer* Player, FPerContextData& ActiveData);
+	TMap<ULocalPlayer*, EUICategory> AddedWidgets;
+	
+	void AddWidgetsForPlayer(UPlayer* Player);
+	void OnWidgetClassesLoaded(UPlayer* Player);
+	void RemoveWidgetsForPlayer(UPlayer* Player);
 };
