@@ -54,6 +54,10 @@
 		{
 			"Name": "DLC_SpecialEdition",
 			"Enabled": true
+		},
+		{
+			"Name": "WebSwing",
+			"Enabled": true
 		}
 	]
 }

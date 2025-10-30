@@ -23,17 +23,17 @@ public:
 
 private:
 	UFUNCTION()
-	void OnEllieButtonPressed();
+	void OnSpidyButtonPressed();
 
 	UFUNCTION()
-	void OnJoelButtonPressed();
+	void OnDefaultButtonPressed();
 
 	void SetCharacterDefinition(FGameplayTag InTag);
 	
 protected:
 	UPROPERTY(meta=(BindWidget))
-	UButton* EllieButton;
+	UButton* SpidyButton;
 
 	UPROPERTY(meta=(BindWidget))
-	UButton* JoelButton;
+	UButton* DefaultButton;
 };

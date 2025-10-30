@@ -4,10 +4,11 @@ namespace BSGamePlayTags
 {
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_Spawned, "InitState.Spawned", "1");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_PlayerStateInitialized, "InitState.PlayerStateInitialized", "2");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_ASCInitialized, "InitState.ASCInitialized", "3");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_CharacterDefinitionInitialized, "InitState.CharacterDefinitionInitialized", "4.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_CharacterComponentInitialized, "InitState.CharacterComponentInitialized", "5.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_GameplayReady, "InitState.GameplayReady", "6.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_InputComponentInitialized, "InitState.InputComponentInitialized", "3");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_ASCInitialized, "InitState.ASCInitialized", "4");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_CharacterDefinitionInitialized, "InitState.CharacterDefinitionInitialized", "5.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_CharacterComponentInitialized, "InitState.CharacterComponentInitialized", "6.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_GameplayReady, "InitState.GameplayReady", "7.");
 
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{
@@ -33,3 +34,4 @@ namespace BSGamePlayTags
 		return Tag;
 	}
 }
+

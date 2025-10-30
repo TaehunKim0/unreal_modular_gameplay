@@ -257,7 +257,7 @@ void UBSPawnInputComponent::OnActorInitStateChanged(const FActorInitStateChanged
 
 void UBSPawnInputComponent::CheckDefaultInitialization()
 {
-	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned, BSGamePlayTags::InitState_PlayerStateInitialized, BSGamePlayTags::InitState_ASCInitialized, BSGamePlayTags::InitState_CharacterDefinitionInitialized, BSGamePlayTags::InitState_CharacterComponentInitialized, BSGamePlayTags::InitState_GameplayReady };
+	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_PlayerStateInitialized, BSGamePlayTags::InitState_InputComponentInitialized, BSGamePlayTags::InitState_ASCInitialized, BSGamePlayTags::InitState_CharacterDefinitionInitialized, BSGamePlayTags::InitState_CharacterComponentInitialized, BSGamePlayTags::InitState_GameplayReady };
 	ContinueInitStateChain(StateChain);
 }
 //

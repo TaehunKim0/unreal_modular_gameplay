@@ -18,6 +18,7 @@ void UBSGameInstance::Init()
 	{
 		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_Spawned, false, FGameplayTag());
 		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_PlayerStateInitialized, false, FGameplayTag());
+		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_InputComponentInitialized, false, FGameplayTag());
 		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_ASCInitialized, false, FGameplayTag());
 		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_CharacterDefinitionInitialized, false, FGameplayTag());
 		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_CharacterComponentInitialized, false, FGameplayTag());

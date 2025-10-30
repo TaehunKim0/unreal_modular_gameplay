@@ -12,25 +12,25 @@ void UBSCharacterSelectionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	EllieButton->OnPressed.AddDynamic(this, &UBSCharacterSelectionWidget::OnEllieButtonPressed);
-	JoelButton->OnPressed.AddDynamic(this, &UBSCharacterSelectionWidget::OnJoelButtonPressed);
+	SpidyButton->OnPressed.AddDynamic(this, &UBSCharacterSelectionWidget::OnSpidyButtonPressed);
+	DefaultButton->OnPressed.AddDynamic(this, &UBSCharacterSelectionWidget::OnDefaultButtonPressed);
 }
 
 void UBSCharacterSelectionWidget::NativeDestruct()
 {
 	Super::NativeDestruct();
 
-	EllieButton->OnPressed.Clear();
-	JoelButton->OnPressed.Clear();
+	SpidyButton->OnPressed.Clear();
+	DefaultButton->OnPressed.Clear();
 }
 
-void UBSCharacterSelectionWidget::OnEllieButtonPressed()
+void UBSCharacterSelectionWidget::OnSpidyButtonPressed()
 {
-	FGameplayTag CharacterTag = FGameplayTag::RequestGameplayTag(FName("Character.Ellie"));
+	FGameplayTag CharacterTag = FGameplayTag::RequestGameplayTag(FName("Character.Spidy"));
 	SetCharacterDefinition(CharacterTag);
 }
 
-void UBSCharacterSelectionWidget::OnJoelButtonPressed()
+void UBSCharacterSelectionWidget::OnDefaultButtonPressed()
 {
 	FGameplayTag CharacterTag = FGameplayTag::RequestGameplayTag(FName("Character.Default"));
 	SetCharacterDefinition(CharacterTag);

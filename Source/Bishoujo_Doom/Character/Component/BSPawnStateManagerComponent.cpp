@@ -88,9 +88,6 @@ bool UBSPawnStateManagerComponent::CanChangeInitState(UGameFrameworkComponentMan
 		if (const auto Pawn = GetPawn<APawn>(); !Pawn->GetPlayerState())
 			return false;
 
-		if (const auto Pawn = GetPawn<APawn>(); !Pawn->InputComponent)
-			return false;
-		
 		if (!Manager->HaveAllFeaturesReachedInitState(GetOwningActor(), BSGamePlayTags::InitState_Spawned))
 		{
 			return false;
@@ -100,12 +97,26 @@ bool UBSPawnStateManagerComponent::CanChangeInitState(UGameFrameworkComponentMan
 		return true;
 	}
 
+	if (DesiredState == BSGamePlayTags::InitState_InputComponentInitialized)
+	{
+		if (const auto Pawn = GetPawn<APawn>(); !Pawn->InputComponent)
+			return false;
+
+		if (!Manager->HaveAllFeaturesReachedInitState(GetOwningActor(), BSGamePlayTags::InitState_PlayerStateInitialized))
+		{
+			return false;
+		}
+
+		UE_LOG(LogBSInitState, Warning, TEXT("UBSPawnStateManagerComponent::InitState_InputComponentInitialized"));
+		return true;
+	}
+
 	if (DesiredState == BSGamePlayTags::InitState_ASCInitialized)
 	{
 		const auto BSPlayerState = GetPlayerState<ABSPlayerState>();
 		ensure(BSPlayerState);
 		
-		if (!Manager->HaveAllFeaturesReachedInitState(GetOwningActor(), BSGamePlayTags::InitState_PlayerStateInitialized))
+		if (!Manager->HaveAllFeaturesReachedInitState(GetOwningActor(), BSGamePlayTags::InitState_InputComponentInitialized))
 		{
 			return false;
 		}
@@ -196,7 +207,7 @@ void UBSPawnStateManagerComponent::OnActorInitStateChanged(const FActorInitState
 
 void UBSPawnStateManagerComponent::CheckDefaultInitialization()
 {
-	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_PlayerStateInitialized, BSGamePlayTags::InitState_ASCInitialized, BSGamePlayTags::InitState_CharacterDefinitionInitialized, BSGamePlayTags::InitState_CharacterComponentInitialized, BSGamePlayTags::InitState_GameplayReady };
+	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_PlayerStateInitialized, BSGamePlayTags::InitState_InputComponentInitialized, BSGamePlayTags::InitState_ASCInitialized, BSGamePlayTags::InitState_CharacterDefinitionInitialized, BSGamePlayTags::InitState_CharacterComponentInitialized, BSGamePlayTags::InitState_GameplayReady };
 	ContinueInitStateChain(StateChain);
 }
 //~ End IGameFrameworkInitStateInterface interface

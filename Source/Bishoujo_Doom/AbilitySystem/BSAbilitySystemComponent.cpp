@@ -114,7 +114,10 @@ void UBSAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGameP
 			{
 				UE_LOG(LogBS, Error, TEXT("Invalid AvatarActor: %s"), *AbilitySpecHandle.ToString());
 			}
-			TryActivateAbility(AbilitySpecHandle);
+			if (!TryActivateAbility(AbilitySpecHandle))
+			{
+				UE_LOG(LogBS, Error, TEXT("Invalid AbilitySpecHandle: %s"), *AbilitySpecHandle.ToString());
+			}
 		}
 		else
 		{
