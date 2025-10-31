@@ -3,7 +3,9 @@
 
 #include "GA_WebSwing.h"
 
+#include "AT_WebSwing.h"
 #include "BSLogChannels.h"
+#include "CentripetalTestActor.h"
 #include "GameFramework/Character.h"
 
 UGA_WebSwing::UGA_WebSwing(const FObjectInitializer& ObjectInitializer)
@@ -25,19 +27,16 @@ void UGA_WebSwing::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		// 스윙 모드 vs 집 모드 판단
 		if (CanUseSwingMode(AttachPoint))
 		{
-			UE_LOG(LogBS, Log, TEXT("Web Swing"));
 			ExecuteWebSwing(AttachPoint);
 		}
 		else
 		{
-			UE_LOG(LogBS, Log, TEXT("Web Zip"));
 			ExecuteWebZip(AttachPoint);
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		}
 	}
 	else
 	{
-		// 웹이 닿지 않으면 어빌리티 종료
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
 }
@@ -137,11 +136,36 @@ void UGA_WebSwing::LaunchWebToMouse(FHitResult& OutHitResult)
 #endif
 }
 
-void UGA_WebSwing::ExecuteWebSwing(FVector InAttachPoint)
+void UGA_WebSwing::ExecuteWebSwing(const FVector& InAttachPoint)
 {
+	//UAT_WebSwing* WebSwingTask = UAT_WebSwing::CreateWebSwingTask(this, InAttachPoint);
+
+	// if (WebSwingTask)
+	// {
+	// 	WebSwingTask->OnFinished.AddUObject(this, &ThisClass::OnWebSwingFinished);
+	// 	WebSwingTask->ReadyForActivation();
+	// }
+
+	// 1. 스폰 위치 설정 (캐릭터 위치)
+	FVector SpawnLocation = GetAvatarActorFromActorInfo()->GetActorLocation();
+
+	// 2. 스폰 파라미터 설정
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = GetAvatarActorFromActorInfo();
+
+	// 3. 🌟 테스트 액터 스폰 🌟
+	auto ResultActor = GetWorld()->SpawnActor<ACentripetalTestActor>(TestActor.LoadSynchronous(), SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+
+	if (ResultActor)
+	{
+		// 4. 테스트 액터에 핵심 정보 전달
+		ResultActor->AttachPoint = InAttachPoint; // 웹이 붙은 지점을 원의 중심으로 설정
+		ResultActor->Radius = FVector::Dist(InAttachPoint, SpawnLocation); // 현재 거리를 반지름으로 설정
+		ResultActor->AngularSpeed = 1.5f; // 원하는 속도로 회전 시작
+	}
 }
 
-void UGA_WebSwing::ExecuteWebZip(FVector InAttachPoint)
+void UGA_WebSwing::ExecuteWebZip(const FVector& InAttachPoint) const
 {
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!Character)
@@ -155,43 +179,16 @@ void UGA_WebSwing::ExecuteWebZip(FVector InAttachPoint)
 		return;
 	}
 
-	// 목표 지점으로의 방향과 거리 계산
-	FVector CharacterLocation = Character->GetActorLocation();
-	FVector DirectionToTarget = (InAttachPoint - CharacterLocation).GetSafeNormal();
-	float DistanceToTarget = FVector::Dist(CharacterLocation, InAttachPoint);
+	const FVector CharacterLocation = Character->GetActorLocation();
+	const FVector DirectionToTarget = (InAttachPoint - CharacterLocation).GetSafeNormal();
 
-	// Launch Velocity 계산
 	FVector LaunchVelocity = DirectionToTarget * ZipSpeed;
+	LaunchVelocity.Z += ZipUpwardBoost;
 
-	// 캐릭터 발사
 	Character->LaunchCharacter(LaunchVelocity, true, true);
-
-	// // 착지 감지를 위한 AbilityTask 생성
-	// UAbilityTask_WaitMovementModeChange* LandTask = UAbilityTask_WaitMovementModeChange::CreateWaitMovementModeChange(
-	// 	this,
-	// 	EMovementMode::MOVE_Falling
-	// );
-	//
-	// if (LandTask)
-	// {
-	// 	LandTask->OnChange.AddDynamic(this, &UGA_WebSwing::OnWebZipLanded);
-	// 	LandTask->ReadyForActivation();
-	// }
-
-	// // 타임아웃 설정 (만약을 위해)
-	// FTimerHandle TimeoutHandle;
-	// GetWorld()->GetTimerManager().SetTimer(
-	// 	TimeoutHandle,
-	// 	[this]()
-	// 	{
-	// 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	// 	},
-	// 	5.0f, // 5초 후 강제 종료
-	// 	false
-	// );
 }
 
-bool UGA_WebSwing::CanUseSwingMode(FVector InAttachPoint)
+bool UGA_WebSwing::CanUseSwingMode(const FVector& InAttachPoint) const
 {
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!Character)
@@ -199,15 +196,16 @@ bool UGA_WebSwing::CanUseSwingMode(FVector InAttachPoint)
 		return false;
 	}
 
-	// 캐릭터에서 부착점으로의 방향 벡터
 	FVector CharacterLocation = Character->GetActorLocation();
-	FVector ToAttachPoint = (InAttachPoint - CharacterLocation).GetSafeNormal();
+	if (CharacterLocation.Z > InAttachPoint.Z)
+	{
+		return false;
+	}
 
-	// 수평면 기준 각도 계산 (Z 성분으로 판단)
-	// Z > 0: 위쪽, Z < 0: 아래쪽
-	float AngleToHorizon = FMath::RadiansToDegrees(FMath::Asin(ToAttachPoint.Z));
+	return true;
+}
 
-	// 임계값보다 위쪽이면 Swing 모드
-	// 예: 45도 이상이면 Swing, 미만이면 Zip
-	return AngleToHorizon > SwingAngleThreshold;
+void UGA_WebSwing::OnWebSwingFinished()
+{
+	K2_EndAbility();
 }

@@ -101,6 +101,7 @@ void UBSPlayerUISubSystem::ShowPawnAbilitySetMessage(const ABSPlayerState* InBSP
 			FString AbilityName = AbilitySpec.Ability->GetName();
 			FString VarName = "Ability "; VarName.AppendInt(Index);
 			ShowDebugMessage(VarName,  AbilityName);
+			Index += 1;
 		}
 	}
 

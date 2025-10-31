@@ -6,6 +6,7 @@
 #include "AbilitySystem/Abilities/BSGameplayAbility.h"
 #include "GA_WebSwing.generated.h"
 
+class ACentripetalTestActor;
 /**
  * 
  */
@@ -27,27 +28,30 @@ private:
 	void LaunchWebToMouse(FHitResult& OutHitResult);
 
 	UFUNCTION()
-	void ExecuteWebSwing(FVector InAttachPoint);
+	void ExecuteWebSwing(const FVector& InAttachPoint);
 	
 	UFUNCTION()
-	void ExecuteWebZip(FVector InAttachPoint);
+	void ExecuteWebZip(const FVector& InAttachPoint) const;
 
 private:
-	bool CanUseSwingMode(FVector InAttachPoint);
+	bool CanUseSwingMode(const FVector& InAttachPoint) const;
+
+	UFUNCTION()
+	void OnWebSwingFinished();
 	
 private:
-	// Settings
-	UPROPERTY(EditDefaultsOnly, Category = "WebSwing")
+	UPROPERTY(EditDefaultsOnly, Category = "Test")
+	TSoftClassPtr<ACentripetalTestActor> TestActor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "WebZip")
 	float MaxWebDistance = 2000.0f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "WebSwing")
-	float SwingAngleThreshold = 45.0f; // 이 각도 이상이면 스윙
-
-	UPROPERTY(EditDefaultsOnly, Category = "WebSwing")
-	float SwingForce = 1000.0f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "WebSwing")
-	float ZipSpeed = 1500.0f;
+	
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "WebZip")
+	float ZipSpeed = 3000.0f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "WebZip")
+	float ZipUpwardBoost = 500.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "WebSwing")
 	TEnumAsByte<ECollisionChannel> WebTraceChannel = ECC_Visibility;
