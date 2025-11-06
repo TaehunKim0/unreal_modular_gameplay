@@ -20,7 +20,14 @@ public:
 	
 protected:
 	virtual void Activate() override;
+	virtual void TickTask(float DeltaTime) override;
 	virtual void OnDestroy(bool bInOwnerFinished) override;
+	void UpdateCharacterRotation(float DeltaTime);
+
+	FRotator CalculateSwingSideAngle();
+	FVector CalculateStringTension(float InVelocityClampMin, float InVelocityClampMax) const;
+	FVector IncreaseSpeedAtBottomOfArc();
+	
 
 public:
 	FSimpleMulticastDelegate OnFinished;
@@ -28,11 +35,9 @@ public:
 private:
 	// 로프 방향 힘 (매달림)
 	FVector TargetAttachPoint;		//원의 중심
-	float WebLength;				//원의 반지름
-	float CalculatedWebTension;		//웹의 장력
+	float Radius;				//원의 반지름
 
-	// 접선 방향 힘 (가속)
-	FVector CurrentSwingVelocity;	//매 프레임 스윙 순간 속도
-	FVector TangentForceDirection;	//접선 방향, 순간 방향
-	float CurrentSwingAngle;		//현재 스윙 각도(로프 대비)
+	float AngularSpeed = 2.0f;
+	float Mass = 20.f;
+	bool bInitialVelocitySet = false;
 };

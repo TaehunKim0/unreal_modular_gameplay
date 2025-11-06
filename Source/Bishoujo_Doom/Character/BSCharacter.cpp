@@ -32,7 +32,7 @@ ABSCharacter::ABSCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// 컨트롤러가 회전할 때 캐릭터가 같이 회전하지 않도록 설정
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	PawnStateManagerComponent = CreateDefaultSubobject<UBSPawnStateManagerComponent>(TEXT("PawnStateManagerComponent"));
@@ -73,7 +73,7 @@ void ABSCharacter::PossessedBy(AController* NewController)
 	const auto BSPlayerState = Cast<ABSPlayerState>(GetPlayerState());
 	if (!IsValid(BSPlayerState))
 	{
-		UE_LOG(LogBS, Error, TEXT("ABSCharacter::BSPlayerState is not valid"));
+		UE_LOG(LogBS, Error, TEXT("ABSCharacter::BSPlayerState is not Valid"));
 		return;
 	}
 

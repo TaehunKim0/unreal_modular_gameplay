@@ -45,6 +45,8 @@ void UGA_WebSwing::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	UE_LOG(LogBS, Log, TEXT("UGA_WebSwing::EndAbility"));
 }
 
 bool UGA_WebSwing::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -54,10 +56,10 @@ bool UGA_WebSwing::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
-void UGA_WebSwing::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UGA_WebSwing::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
 
 	EndAbility(Handle,ActorInfo,ActivationInfo,true, false);
 }
@@ -138,31 +140,13 @@ void UGA_WebSwing::LaunchWebToMouse(FHitResult& OutHitResult)
 
 void UGA_WebSwing::ExecuteWebSwing(const FVector& InAttachPoint)
 {
-	//UAT_WebSwing* WebSwingTask = UAT_WebSwing::CreateWebSwingTask(this, InAttachPoint);
+	UAT_WebSwing* WebSwingTask = UAT_WebSwing::CreateWebSwingTask(this, InAttachPoint);
 
-	// if (WebSwingTask)
-	// {
-	// 	WebSwingTask->OnFinished.AddUObject(this, &ThisClass::OnWebSwingFinished);
-	// 	WebSwingTask->ReadyForActivation();
-	// }
-
-	// 1. 스폰 위치 설정 (캐릭터 위치)
-	FVector SpawnLocation = GetAvatarActorFromActorInfo()->GetActorLocation();
-
-	// 2. 스폰 파라미터 설정
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = GetAvatarActorFromActorInfo();
-
-	// 3. 🌟 테스트 액터 스폰 🌟
-	auto ResultActor = GetWorld()->SpawnActor<ACentripetalTestActor>(TestActor.LoadSynchronous(), SpawnLocation, FRotator::ZeroRotator, SpawnParams);
-
-	if (ResultActor)
-	{
-		// 4. 테스트 액터에 핵심 정보 전달
-		ResultActor->AttachPoint = InAttachPoint; // 웹이 붙은 지점을 원의 중심으로 설정
-		ResultActor->Radius = FVector::Dist(InAttachPoint, SpawnLocation); // 현재 거리를 반지름으로 설정
-		ResultActor->AngularSpeed = 1.5f; // 원하는 속도로 회전 시작
-	}
+	 if (WebSwingTask)
+	 {
+	 	WebSwingTask->OnFinished.AddUObject(this, &ThisClass::OnWebSwingFinished);
+	 	WebSwingTask->ReadyForActivation();
+	 }
 }
 
 void UGA_WebSwing::ExecuteWebZip(const FVector& InAttachPoint) const
