@@ -110,7 +110,7 @@ void UAT_WebSwing::UpdateKeyboardInput(const FVector2D& MovementValue)
 	{
 		auto RightDir = Character->GetActorRightVector().GetSafeNormal();
 	
-		float Power = 4000.f;
+		float Power = 110000.f;
 		FVector Force = RightDir * MovementValue.X * Power;
 	
 		Character->GetCharacterMovement()->AddForce(Force);
@@ -159,93 +159,3 @@ FVector UAT_WebSwing::IncreaseSpeedAtBottomOfArc()
 
 	return FVector::ZeroVector;
 }
-
-/*
-*	// 새로운 방향 계산 (현재 위치에서의 접선 방향)
-	FVector CurrentToTarget = (TargetAttachPoint - AvatarActor->GetActorLocation()).GetSafeNormal();
-	FVector NewTangentDirection = FVector::CrossProduct(CurrentToTarget, FVector::UpVector).GetSafeNormal();
-	DrawDebugDirectionalArrow(
-			GetWorld(),
-			AvatarActor->GetActorLocation(),                    // 시작점
-			AvatarActor->GetActorLocation() + NewTangentDirection * 200.f,  // 끝점 (200은 화살표 길이)
-			5.f,                                                 // 화살표 크기
-			FColor::Blue,                                       // 색상
-			false,                                               // 지속 여부
-			1.0f,                                               // 지속 시간 (0 = 한 프레임)
-			0,                                                   // Depth Priority
-			2.f                                                  // 선 두께
-		);
- void UAT_WebSwing::TickTask(float DeltaTime)
-{
-	Super::TickTask(DeltaTime);
-
-	// 현재 위치에서 중심점까지의 벡터
-	auto AvatarActor = GetGameplayTaskAvatar(this);
-	FVector ToTargetDirection = (TargetAttachPoint - AvatarActor->GetActorLocation()).GetSafeNormal();
-
-	auto MovementComp = Cast<ACharacter>(AvatarActor)->GetMovementComponent(); 
-
-	if (!bInitialVelocitySet)
-	{
-		//* 1. 초기 접선 속도 구하기*
-		// 접선 방향 = 중심 방향과 수직인 방향 (외적으로 계산)
-		FVector TangentDirection = FVector::CrossProduct(ToTargetDirection, FVector::UpVector).GetSafeNormal();
-		
-		DrawDebugDirectionalArrow(
-			GetWorld(),
-			AvatarActor->GetActorLocation(),                    // 시작점
-			AvatarActor->GetActorLocation() + TangentDirection * 200.f,  // 끝점 (200은 화살표 길이)
-			5.f,                                                 // 화살표 크기
-			FColor::Green,                                       // 색상
-			false,                                               // 지속 여부
-			5.0f,                                               // 지속 시간 (0 = 한 프레임)
-			0,                                                   // Depth Priority
-			2.f                                                  // 선 두께
-		);
-
-		// 각속도 (단위 시간 동안 회전하는 각도) w
-		AngularSpeed = 2.f;
-    	
-		// 속도 (단위 시간 동안 변화한 변위) v = r * w
-		float InitialSpeed = Radius * AngularSpeed;
-
-		// 초기 속도 적용 (접선 방향으로 날아가게)
-		FVector InitialVelocity = TangentDirection * InitialSpeed;
-		MovementComp->Velocity = InitialVelocity;
-        
-		bInitialVelocitySet = true;
-	}
-
-	//* 2. 구심력 구하기 *
-	// 현재 속도 v
-	FVector CurrentVelocity = MovementComp->Velocity;
-	float CurrentSpeed = CurrentVelocity.Size();
-    
-	// 구심 가속도 a = v^2 / r
-	float CentripetalAccelerationMagnitude = (CurrentSpeed * CurrentSpeed) / Radius;
-	
-	// 구심력 = m * a = m * 구심 가속도
-	float CentripetalForceMagnitude = 60 * CentripetalAccelerationMagnitude; // F = m * a
-    
-	// 최종 힘 : 구심력 * 방향
-	FVector DirectionUnitVector = (TargetAttachPoint - AvatarActor->GetActorLocation()).GetSafeNormal();
-	
-	// 새로운 방향 계산 (현재 위치에서의 접선 방향)
-	FVector CurrentToTarget = (TargetAttachPoint - AvatarActor->GetActorLocation()).GetSafeNormal();
-	FVector NewTangentDirection = FVector::CrossProduct(CurrentToTarget, FVector::UpVector).GetSafeNormal();
-	DrawDebugDirectionalArrow(
-			GetWorld(),
-			AvatarActor->GetActorLocation(),                    // 시작점
-			AvatarActor->GetActorLocation() + NewTangentDirection * 200.f,  // 끝점 (200은 화살표 길이)
-			5.f,                                                 // 화살표 크기
-			FColor::Blue,                                       // 색상
-			false,                                               // 지속 여부
-			1.0f,                                               // 지속 시간 (0 = 한 프레임)
-			0,                                                   // Depth Priority
-			2.f                                                  // 선 두께
-		);
-
-	// 속도를 새 접선 방향으로 설정 (크기는 유지)
-	MovementComp->Velocity = NewTangentDirection * CurrentSpeed;
-}
- */

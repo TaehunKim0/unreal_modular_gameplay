@@ -6,6 +6,7 @@
 #include "AT_WebSwing.h"
 #include "BSLogChannels.h"
 #include "CentripetalTestActor.h"
+#include "Character/BSCharacter.h"
 #include "GameFramework/Character.h"
 
 UGA_WebSwing::UGA_WebSwing(const FObjectInitializer& ObjectInitializer)
@@ -144,12 +145,15 @@ void UGA_WebSwing::ExecuteWebSwing(const FVector& InAttachPoint)
 
 	 if (WebSwingTask)
 	 {
+	 	auto LeftHandSocket = Cast<ACharacter>(GetAvatarActorFromActorInfo())->GetMesh()->GetSocketByName("HandGrip_L");
+	 	SpawnWebSwingVfx(InAttachPoint, LeftHandSocket);
+	 	
 	 	WebSwingTask->OnFinished.AddUObject(this, &ThisClass::OnWebSwingFinished);
 	 	WebSwingTask->ReadyForActivation();
 	 }
 }
 
-void UGA_WebSwing::ExecuteWebZip(const FVector& InAttachPoint) const
+void UGA_WebSwing::ExecuteWebZip(const FVector& InAttachPoint)
 {
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!Character)
@@ -169,6 +173,8 @@ void UGA_WebSwing::ExecuteWebZip(const FVector& InAttachPoint) const
 	FVector LaunchVelocity = DirectionToTarget * ZipSpeed;
 	LaunchVelocity.Z += ZipUpwardBoost;
 
+	auto LeftHandLocation = Cast<ACharacter>(GetAvatarActorFromActorInfo())->GetMesh()->GetSocketLocation("HandGrip_L");
+	SpawnWebZipVfx(InAttachPoint, LeftHandLocation);
 	Character->LaunchCharacter(LaunchVelocity, true, true);
 }
 
