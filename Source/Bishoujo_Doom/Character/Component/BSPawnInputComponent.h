@@ -18,6 +18,8 @@ class UGameFrameworkComponentManager;
  * 
  */
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPawnMoveDelegate, const FVector2D& MovementValue);
+
 UCLASS()
 class BISHOUJO_DOOM_API UBSPawnInputComponent : public UPawnComponent, public IGameFrameworkInitStateInterface
 {
@@ -56,5 +58,6 @@ public:
 
 public:
 	static const FName NAME_PAWNINPUTCOMPONENT;
+	FOnPawnMoveDelegate OnPawnMoveDelegate;
 };
 

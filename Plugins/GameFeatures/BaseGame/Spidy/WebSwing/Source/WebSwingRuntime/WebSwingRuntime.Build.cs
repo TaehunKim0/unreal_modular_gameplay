@@ -27,6 +27,7 @@ public class WebSwingRuntime : ModuleRules
 			{
 				"Core",
 				"ModularGameplay",
+				"GameplayTags",
 				"GameplayAbilities",
 				"GameplayTasks",
 				"Bishoujo_Doom"

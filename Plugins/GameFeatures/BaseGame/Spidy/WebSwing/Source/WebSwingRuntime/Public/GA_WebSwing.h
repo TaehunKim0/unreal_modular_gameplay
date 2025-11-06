@@ -44,7 +44,7 @@ private:
 	TSoftClassPtr<ACentripetalTestActor> TestActor;
 
 	UPROPERTY(EditDefaultsOnly, Category = "WebZip")
-	float MaxWebDistance = 2000.0f;
+	float MaxWebDistance = 4000.0f;
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "WebZip")

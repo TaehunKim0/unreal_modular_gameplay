@@ -169,6 +169,8 @@ void UBSPawnInputComponent::Input_Move(const FInputActionValue& InputActionValue
 			const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
 			Pawn->AddMovementInput(MovementDirection, Value.Y);
 		}
+
+		OnPawnMoveDelegate.Broadcast(Value);
 	}
 }
 

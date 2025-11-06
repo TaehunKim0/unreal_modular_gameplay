@@ -6,6 +6,7 @@
 #include "BSLogChannels.h"
 #include "GA_WebSwing.h"
 #include "Character/BSCharacter.h"
+#include "Character/Component/BSPawnInputComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -27,6 +28,13 @@ UAT_WebSwing* UAT_WebSwing::CreateWebSwingTask(UGameplayAbility* InOwningAbility
 void UAT_WebSwing::Activate()
 {
 	Super::Activate();
+
+	auto AvatarActor = GetGameplayTaskAvatar(this);
+	auto BSCharacter = Cast<ABSCharacter>(AvatarActor);
+	if (BSCharacter && BSCharacter->PawnInputComponent)
+	{
+		BSCharacter->PawnInputComponent->OnPawnMoveDelegate.AddUObject(this, &UAT_WebSwing::UpdateKeyboardInput);
+	}
 }
 
 void UAT_WebSwing::TickTask(float DeltaTime)
@@ -51,7 +59,7 @@ void UAT_WebSwing::TickTask(float DeltaTime)
 	// Result Force
 	FVector ResultForce = ForwardPushingForce + TensionForce + IncreasedSpeed;
 	MovementComp->AddForce(ResultForce);
-
+	
 	DrawDebugDirectionalArrow(
 		GetWorld(),
 		AvatarActor->GetActorLocation(),
@@ -92,6 +100,23 @@ void UAT_WebSwing::UpdateCharacterRotation(float DeltaTime)
 	Character->SetActorRotation(ResultRotation);
 }
 
+void UAT_WebSwing::UpdateKeyboardInput(const FVector2D& MovementValue)
+{
+	auto AvatarActor = GetGameplayTaskAvatar(this);
+	auto Character = Cast<ACharacter>(AvatarActor);
+	if (!Character) return;
+
+	if (MovementValue.X != 0.0f)
+	{
+		auto RightDir = Character->GetActorRightVector().GetSafeNormal();
+	
+		float Power = 4000.f;
+		FVector Force = RightDir * MovementValue.X * Power;
+	
+		Character->GetCharacterMovement()->AddForce(Force);
+	}
+}
+
 FRotator UAT_WebSwing::CalculateSwingSideAngle()
 {
 	auto AvatarActor = GetGameplayTaskAvatar(this);
@@ -115,19 +140,6 @@ FVector UAT_WebSwing::CalculateStringTension(float InVelocityClampMin, float InV
 
 	return ToCharacterDirection.GetSafeNormal() * Dot * -1.f; //반대 방향으로 힘 주기
 }
-
-// FVector UAT_WebSwing::GetCurrentSwingAngle() const
-// {
-// 	FVector ToAttachPointDir = (TargetAttachPoint - GetAvatarActor()->GetActorLocation()).GetSafeNormal();	
-// 	auto MovementComp = Cast<ACharacter>(GetAvatarActor())->GetMovementComponent();
-// 	FVector CurrentVelocity = MovementComp->Velocity;
-//
-// 	FVector ResultVector = FVector::CrossProduct(CurrentVelocity, ToAttachPointDir);
-//
-// 	FRotationMatrix::MakeFromZY(ToAttachPointDir, ResultVector);
-// 	
-// 	return ResultVector;
-// }
 
 FVector UAT_WebSwing::IncreaseSpeedAtBottomOfArc()
 {

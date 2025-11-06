@@ -22,12 +22,13 @@ protected:
 	virtual void Activate() override;
 	virtual void TickTask(float DeltaTime) override;
 	virtual void OnDestroy(bool bInOwnerFinished) override;
+
 	void UpdateCharacterRotation(float DeltaTime);
+	void UpdateKeyboardInput(const FVector2D& MovementValue);
 
 	FRotator CalculateSwingSideAngle();
 	FVector CalculateStringTension(float InVelocityClampMin, float InVelocityClampMax) const;
 	FVector IncreaseSpeedAtBottomOfArc();
-	
 
 public:
 	FSimpleMulticastDelegate OnFinished;
