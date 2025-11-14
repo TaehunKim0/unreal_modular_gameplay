@@ -41,6 +41,10 @@ public:
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 
 protected:
+	UFUNCTION()
+	void OnPawnSetted(APlayerState* InPlayerState, APawn* InNewPawn, APawn* InOldPawn);
+	
+protected:
 	// Handles to abilities that had their input pressed this frame.
 	TArray<FGameplayAbilitySpecHandle> InputPressedSpecHandles;
 

@@ -28,7 +28,7 @@ struct FGameFeatureAbilitiesEntry
 /**
  * 
  */
-UCLASS(meta = (DisplayName = "Add Abilities"))
+UCLASS(meta = (DisplayName = "Add AbilitySet"))
 class BISHOUJO_DOOM_API UGameFeatureAction_AddAbilities : public UGameFeatureAction
 {
 	GENERATED_BODY()

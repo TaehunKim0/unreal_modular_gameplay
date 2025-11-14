@@ -206,16 +206,28 @@ void UBSAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 	}
 }
 
+void UBSAbilitySystemComponent::OnPawnSetted(APlayerState* InPlayerState, APawn* InNewPawn, APawn* InOldPawn)
+{
+	InitAbilityActorInfo(GetOwner(), InNewPawn);
+}
+
+// ~ Begin IGameFrameworkInitStateInterface interface
+//
 //
 void UBSAbilitySystemComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager,
 	FGameplayTag CurrentState, FGameplayTag DesiredState)
 {
 	UE_LOG(LogBSInitState, Log, TEXT("UBSAbilitySystemComponent::		Actor State %s -> %s"), *CurrentState.ToString(), *DesiredState.ToString());
 	
-	
 	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
 	{
-		InitAbilityActorInfo(GetOwner(), Cast<APlayerState>(GetOwner())->GetPawn());
+		if (const auto PS = Cast<APlayerState>(GetOwner()))
+		{
+			InitAbilityActorInfo(PS, PS->GetPawn());
+
+			if (!PS->OnPawnSet.IsBound())
+				PS->OnPawnSet.AddDynamic(this, &UBSAbilitySystemComponent::OnPawnSetted);
+		}
 	}
 }
 
@@ -244,3 +256,6 @@ void UBSAbilitySystemComponent::CheckDefaultInitialization()
 	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_DataAvailable, BSGamePlayTags::InitState_DataInitialized,BSGamePlayTags::InitState_GameplayReady };
 	ContinueInitStateChain(StateChain);
 }
+//
+//
+// ~ End IGameFrameworkInitStateInterface interface

@@ -154,6 +154,7 @@ void UBSHealthComponent::CheckDefaultInitialization()
 	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_DataAvailable, BSGamePlayTags::InitState_DataInitialized,BSGamePlayTags::InitState_GameplayReady };
 	ContinueInitStateChain(StateChain);
 }
+// End of 
 
 float UBSHealthComponent::GetHealth()
 {
