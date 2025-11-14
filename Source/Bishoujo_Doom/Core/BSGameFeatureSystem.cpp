@@ -3,7 +3,7 @@
 
 #include "Core/BSGameFeatureSystem.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "GameFeatureData.h"
 
 
@@ -15,34 +15,34 @@ void UBSGameFeatureSystem::BeginDestroy()
 }
 
 void UBSGameFeatureSystem::EnableGameFeature(
-	const FString& GameFeatureNameToEnable,
-	const FGameFeaturePluginLoadComplete& LoadCompleteDelegate,
-	const FGameFeaturePluginLoadComplete& ActiveCompleteDelegate)
+	const FString& InGameFeatureNameToEnable,
+	const FGameFeaturePluginLoadComplete& InLoadCompleteDelegate,
+	const FGameFeaturePluginLoadComplete& InActiveCompleteDelegate)
 {
 	UGameFeaturesSubsystem& GameFeatureSubsystem = UGameFeaturesSubsystem::Get();
 
+	
 	GameFeatureSubsystem.LoadGameFeaturePlugin(
-		GetPluginURLByName(GameFeatureNameToEnable),
-		LoadCompleteDelegate);
+		GetPluginURLByName(InGameFeatureNameToEnable),
+		InLoadCompleteDelegate);
 
 	GameFeatureSubsystem.LoadAndActivateGameFeaturePlugin(
-		GetPluginURLByName(GameFeatureNameToEnable),
-		ActiveCompleteDelegate);
-
+		GetPluginURLByName(InGameFeatureNameToEnable),
+		InActiveCompleteDelegate);
 }
 
-void UBSGameFeatureSystem::K2_EnableGameFeature(const FString& GameFeatureNameToEnable)
+void UBSGameFeatureSystem::K2_EnableGameFeature(const FString& InGameFeatureNameToEnable)
 {
 	EnableGameFeature(
-		GameFeatureNameToEnable,
+		InGameFeatureNameToEnable,
 		FGameFeaturePluginLoadComplete{},
-		FGameFeaturePluginLoadComplete::CreateLambda([GameFeatureNameToEnable](const UE::GameFeatures::FResult& Result)
+		FGameFeaturePluginLoadComplete::CreateLambda([InGameFeatureNameToEnable](const UE::GameFeatures::FResult& Result)
 		{
-			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Activated : %s"), *GameFeatureNameToEnable);
+			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Activated : %s"), *InGameFeatureNameToEnable);
 		}));
 }
 
-void UBSGameFeatureSystem::DisableGameFeature(const FString& GameFeatureToDisable)
+void UBSGameFeatureSystem::DisableGameFeature(const FString& InGameFeatureToDisable)
 {
 	UGameFeaturesSubsystem* GameFeatureSubsystem = GEngine->GetEngineSubsystem<UGameFeaturesSubsystem>();
 	if (!IsValid(GameFeatureSubsystem))
@@ -51,17 +51,17 @@ void UBSGameFeatureSystem::DisableGameFeature(const FString& GameFeatureToDisabl
 	}
 	
 	FString PluginURL;
-	UGameFeaturesSubsystem::Get().GetPluginURLByName(GameFeatureToDisable, PluginURL);
+	UGameFeaturesSubsystem::Get().GetPluginURLByName(InGameFeatureToDisable, PluginURL);
 
-	UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::Deactivating GameFeature: %s"), *GameFeatureToDisable);
+	UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::Deactivating GameFeature: %s"), *InGameFeatureToDisable);
 	
 	OnPluginDeactivateCompleteDelegate.BindUObject(this, &UBSGameFeatureSystem::OnGameFeaturePluginDeactivateComplete);
 	GameFeatureSubsystem->DeactivateGameFeaturePlugin(PluginURL, OnPluginDeactivateCompleteDelegate);
 }
 
-void UBSGameFeatureSystem::DisableGameFeatures(const TArray<FString>& GameFeaturesToDisable)
+void UBSGameFeatureSystem::DisableGameFeatures(const TArray<FString>& InGameFeaturesToDisable)
 {
-	for (const FString& FeatureName : GameFeaturesToDisable)
+	for (const FString& FeatureName : InGameFeaturesToDisable)
 	{
 		DisableGameFeature(FeatureName);
 	}
@@ -87,12 +87,12 @@ void UBSGameFeatureSystem::DisableAllGameFeatures()
 	DisableGameFeatures(PluginNames);
 }
 
-void UBSGameFeatureSystem::K2_DisableGameFeature(const FString& GameFeatureNameToEnable)
+void UBSGameFeatureSystem::K2_DisableGameFeature(const FString& InGameFeatureNameToEnable)
 {
-	DisableGameFeature(GameFeatureNameToEnable);
+	DisableGameFeature(InGameFeatureNameToEnable);
 }
 
-void UBSGameFeatureSystem::UnLoadGameFeature(const FString& GameFeatureToUnLoad)
+void UBSGameFeatureSystem::UnLoadGameFeature(const FString& InGameFeatureToUnLoad)
 {
 	UGameFeaturesSubsystem* GameFeatureSubsystem = GEngine->GetEngineSubsystem<UGameFeaturesSubsystem>();
 	if (!GameFeatureSubsystem)
@@ -102,19 +102,19 @@ void UBSGameFeatureSystem::UnLoadGameFeature(const FString& GameFeatureToUnLoad)
 	}
 
 	GameFeatureSubsystem->UnloadGameFeaturePlugin(
-		GetPluginURLByName(GameFeatureToUnLoad),
-		FGameFeaturePluginLoadComplete::CreateLambda([GameFeatureToUnLoad](const UE::GameFeatures::FResult& Result)
+		GetPluginURLByName(InGameFeatureToUnLoad),
+		FGameFeaturePluginLoadComplete::CreateLambda([InGameFeatureToUnLoad](const UE::GameFeatures::FResult& Result)
 		{
-			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Unload : %s"), *GameFeatureToUnLoad);
+			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Unload : %s"), *InGameFeatureToUnLoad);
 	}));
 }
 
-void UBSGameFeatureSystem::K2_UnLoadGameFeature(const FString& GameFeatureToUnLoad)
+void UBSGameFeatureSystem::K2_UnLoadGameFeature(const FString& InGameFeatureToUnLoad)
 {
-	UnLoadGameFeature(GameFeatureToUnLoad);
+	UnLoadGameFeature(InGameFeatureToUnLoad);
 }
 
-void UBSGameFeatureSystem::ReleaseGameFeature(const FString& GameFeatureToRelease)
+void UBSGameFeatureSystem::ReleaseGameFeature(const FString& InGameFeatureToRelease)
 {
 	UGameFeaturesSubsystem* GameFeatureSubsystem = GEngine->GetEngineSubsystem<UGameFeaturesSubsystem>();
 	if (!GameFeatureSubsystem)
@@ -124,16 +124,16 @@ void UBSGameFeatureSystem::ReleaseGameFeature(const FString& GameFeatureToReleas
 	}
 
 	GameFeatureSubsystem->ReleaseGameFeaturePlugin(
-		GetPluginURLByName(GameFeatureToRelease),
-		FGameFeaturePluginReleaseComplete::CreateLambda([GameFeatureToRelease](const UE::GameFeatures::FResult& Result)
+		GetPluginURLByName(InGameFeatureToRelease),
+		FGameFeaturePluginReleaseComplete::CreateLambda([InGameFeatureToRelease](const UE::GameFeatures::FResult& Result)
 		{
-			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Released : %s"), *GameFeatureToRelease);
+			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Released : %s"), *InGameFeatureToRelease);
 		}));
 }
 
-void UBSGameFeatureSystem::K2_ReleaseGameFeature(const FString& GameFeatureToRelease)
+void UBSGameFeatureSystem::K2_ReleaseGameFeature(const FString& InGameFeatureToRelease)
 {
-	ReleaseGameFeature(GameFeatureToRelease);
+	ReleaseGameFeature(InGameFeatureToRelease);
 }
 
 bool UBSGameFeatureSystem::K2_IsGameFeatureActive(const FString& InGameFeatureName)

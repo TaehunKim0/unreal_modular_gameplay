@@ -3,7 +3,7 @@
 
 #include "AbilitySystem/Attributes/BSHealthAttributeSet.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "GameplayEffectExtension.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"

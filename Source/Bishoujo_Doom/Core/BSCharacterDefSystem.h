@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Components/GameStateComponent.h"
-#include "GameFeatures/GameFeatureAction_AddWidgets.h"
+#include "GameFeatureAction/GameFeatureAction_AddWidgets.h"
 #include "BSCharacterDefSystem.generated.h"
 
 class UBSDebugWidget;
@@ -30,6 +30,9 @@ public:
 	
 	void SetCharacterDefinition(APlayerState* InPlayerState, FGameplayTag InTag);
 
+	UFUNCTION(BlueprintCallable)
+	void K2_SetCharacterDefinition(APlayerState* InPlayerState, FGameplayTag InTag);
+
 protected:
 	virtual void BeginDestroy() override;
 
@@ -44,16 +47,28 @@ private:
 
 	bool RespawningPawn(const ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
 	
-	void CleanupCharacterDefinition(ABSPlayerState* PlayerState, const UBSCharacterDefinition* OldCharacterDef);
+	void CleanupCharacterDefinition(ABSPlayerState* InPlayerState, const UBSCharacterDefinition* OldCharacterDef);
 	void DisableGameFeatureActions(const UBSCharacterDefinition* OldCharacterDef);
 	
 	// GameFeature
-	void EnableGameFeatures(ABSPlayerState* InPlayerState, const TArray<FString>& GameFeaturesNameToEnable, const UBSCharacterDefinition* NewCharacterDef);
-	void DisableGameFeatures(const TArray<FString>& GameFeaturesToDisable);
+	void EnableGameFeatures(ABSPlayerState* InPlayerState, const TArray<FString>& InGameFeaturesNameToEnable, const UBSCharacterDefinition* NewCharacterDef);
+	void DisableGameFeatures(const TArray<FString>& InGameFeaturesToDisable);
 
 	UFUNCTION()
 	void OnCharacterDefinitionChanged(const ABSPlayerState* InBSPlayerState, const UBSCharacterDefinition* InNewDefinition);
 
 public:
 	FOnCharacterDefinitionChanged OnCharacterDefinitionChangedDelegate;
+
+private:
+
+	struct PendingCharacterDefinition
+	{
+		APlayerState* PlayerState;
+		FGameplayTag Tag;
+	};
+	TArray<PendingCharacterDefinition> PendingCharacterDefinitionArray;
+	
+	int32 RequiredEnableCount;
+	bool bIsCharacterDefinitionLoading;
 };

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BSInputSet.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
 #include "BSInputComponent.generated.h"
@@ -26,7 +26,7 @@ public:
 
     // 네이티브 인풋 (어빌리티 제외) + 게임 플레이 태그 바인딩 함수
     template<class UserClass, typename FuncType>
-    void BindNativeAction(const UBSInputSet* InputSet, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound = true);
+    uint32 BindNativeAction(const UBSInputSet* InputSet, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound = true);
     
     // 어빌리티 인풋 + 게임 플레이 태그 바인딩 함수
     template<class UserClass, typename PressedFuncType, typename ReleasedFuncType>
@@ -36,14 +36,14 @@ public:
 };
 
 template<class UserClass, typename FuncType>
-void UBSInputComponent::BindNativeAction(const UBSInputSet* InputSet, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound)
+uint32 UBSInputComponent::BindNativeAction(const UBSInputSet* InputSet, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound)
 {
 	check(InputSet);
 	if (const UInputAction* IA = InputSet->FindNativeInputActionForTag(InputTag, bLogIfNotFound))
 	{
-		BindAction(IA, TriggerEvent, Object, Func);
-		
+		return BindAction(IA, TriggerEvent, Object, Func).GetHandle();
 	}
+	return -1;
 }
 
 template<class UserClass, typename PressedFuncType, typename ReleasedFuncType>

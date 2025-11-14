@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "Blueprint/UserWidget.h"
 #include "BSPlayerUISubSystem.generated.h"
 
@@ -94,7 +94,11 @@ public:
 public:
 	// Debug Only
 	void ShowDebugMessage(const FString& InVariableName, const FString& InDesc);
+
 	void ShowPawnAbilitySetMessage(const ABSPlayerState* InBSPlayerState, const UBSCharacterDefinition* InNewDefinition);
+
+	UFUNCTION(BlueprintCallable)
+	void K2_ShowPawnAbilitySetMessage(APawn* InPawn);
 
 	UFUNCTION(BlueprintCallable)
 	void SetUIInputModeOnly(UUserWidget* InFocusWidget, APlayerController* InPlayerController);

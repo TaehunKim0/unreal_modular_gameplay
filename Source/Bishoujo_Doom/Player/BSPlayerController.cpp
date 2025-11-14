@@ -3,7 +3,7 @@
 
 #include "BSPlayerController.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "GameModes/BSGameState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"

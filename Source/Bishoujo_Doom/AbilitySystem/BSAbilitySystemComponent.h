@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "Components/GameFrameworkInitStateInterface.h"
 #include "BSAbilitySystemComponent.generated.h"
 
 
@@ -12,7 +13,7 @@
  * 
  */
 UCLASS()
-class BISHOUJO_DOOM_API UBSAbilitySystemComponent : public UAbilitySystemComponent
+class BISHOUJO_DOOM_API UBSAbilitySystemComponent : public UAbilitySystemComponent, public IGameFrameworkInitStateInterface
 {
 	GENERATED_BODY()
 
@@ -20,9 +21,18 @@ class BISHOUJO_DOOM_API UBSAbilitySystemComponent : public UAbilitySystemCompone
 
 public:
 	virtual void OnRegister() override;
+	virtual void BeginPlay() override;
 
 	virtual void AbilitySpecInputPressed(FGameplayAbilitySpec& Spec) override;
 	virtual void AbilitySpecInputReleased(FGameplayAbilitySpec& Spec) override;
+
+	//~ Begin IGameFrameworkInitStateInterface interface
+	virtual FName GetFeatureName() const override { return UBSAbilitySystemComponent::NAME_ABILITYSYSTEMCOMPONENT; }
+	virtual void HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) override;
+	virtual bool CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const override;
+	virtual void OnActorInitStateChanged(const FActorInitStateChangedParams& Params) override;
+	virtual void CheckDefaultInitialization() override;
+	//~ End IGameFrameworkInitStateInterface interface
 
 public:
 	void ProcessAbilityInput(float DeltaTime, bool bGamePaused);
@@ -30,6 +40,10 @@ public:
 	void AbilityInputTagPressed(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 
+protected:
+	UFUNCTION()
+	void OnPawnSetted(APlayerState* InPlayerState, APawn* InNewPawn, APawn* InOldPawn);
+	
 protected:
 	// Handles to abilities that had their input pressed this frame.
 	TArray<FGameplayAbilitySpecHandle> InputPressedSpecHandles;
@@ -39,4 +53,7 @@ protected:
 
 	// Handles to abilities that have their input held.
 	TArray<FGameplayAbilitySpecHandle> InputHeldSpecHandles;
+
+public:
+	static const FName NAME_ABILITYSYSTEMCOMPONENT;
 };

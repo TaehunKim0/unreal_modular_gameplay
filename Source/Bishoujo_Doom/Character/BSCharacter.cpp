@@ -5,8 +5,8 @@
 
 #include <string>
 
-#include "BSGamePlayTags.h"
-#include "BSLogChannels.h"
+#include "Etc/BSGamePlayTags.h"
+#include "Etc/BSLogChannels.h"
 #include "EnhancedActionKeyMapping.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
@@ -32,7 +32,7 @@ ABSCharacter::ABSCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// 컨트롤러가 회전할 때 캐릭터가 같이 회전하지 않도록 설정
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	PawnStateManagerComponent = CreateDefaultSubobject<UBSPawnStateManagerComponent>(TEXT("PawnStateManagerComponent"));
@@ -62,40 +62,23 @@ ABSCharacter::ABSCharacter(const FObjectInitializer& ObjectInitializer)
 void ABSCharacter::PreInitializeComponents()
 {
 	Super::PreInitializeComponents();
-
-	UE_LOG(LogBS, Log, TEXT("ABSCharacter::PreInitializeComponents"));
 }
 
 void ABSCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-	const auto BSPlayerState = Cast<ABSPlayerState>(GetPlayerState());
-	if (!IsValid(BSPlayerState))
-	{
-		UE_LOG(LogBS, Error, TEXT("ABSCharacter::BSPlayerState is not valid"));
-		return;
-	}
-
-	AbilitySystemComponent = BSPlayerState->GetBSAbilitySystemComponent();
-	AbilitySystemComponent->InitAbilityActorInfo(BSPlayerState, this);
-
-	UE_LOG(LogBS, Log, TEXT("ABSCharacter::PossessedBy"));
 	OnPossessedDelegate.Broadcast(this);
 }
 
 void ABSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UE_LOG(LogBS, Log, TEXT("ABSCharacter::BeginPlay"));
 }
 
 void ABSCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-
-	UE_LOG(LogBS, Log, TEXT("ABSCharacter::EndPlay"));
 }
 
 void ABSCharacter::OnRep_PlayerState()
@@ -125,7 +108,12 @@ UBSAbilitySystemComponent* ABSCharacter::GetBSAbilitySystemComponent() const
 
 UAbilitySystemComponent* ABSCharacter::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponent;
+	if (const auto BSPS = Cast<ABSPlayerState>(GetPlayerState()))
+	{
+		return BSPS->GetAbilitySystemComponent();
+	}
+	
+	return nullptr;
 }
 
 void ABSCharacter::OnPawnGameplayReadyComplete()

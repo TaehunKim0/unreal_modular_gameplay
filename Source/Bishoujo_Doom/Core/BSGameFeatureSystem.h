@@ -22,30 +22,30 @@ public:
 
 public:
 	void EnableGameFeature(
-		const FString& GameFeatureNameToEnable,
-		const FGameFeaturePluginLoadComplete& LoadCompleteDelegate,
-		const FGameFeaturePluginLoadComplete& ActiveCompleteDelegate);
+		const FString& InGameFeatureNameToEnable,
+		const FGameFeaturePluginLoadComplete& InLoadCompleteDelegate,
+		const FGameFeaturePluginLoadComplete& InActiveCompleteDelegate);
 
 	UFUNCTION(BlueprintCallable)
-	void K2_EnableGameFeature(const FString& GameFeatureNameToEnable);
+	void K2_EnableGameFeature(const FString& InGameFeatureNameToEnable);
 
 public:
-	void DisableGameFeature(const FString& GameFeatureToDisable);
-	void DisableGameFeatures(const TArray<FString>& GameFeaturesToDisable);
+	void DisableGameFeature(const FString& InGameFeatureToDisable);
+	void DisableGameFeatures(const TArray<FString>& InGameFeaturesToDisable);
 	void DisableAllGameFeatures();
 
 	UFUNCTION(BlueprintCallable)
-	void K2_DisableGameFeature(const FString& GameFeatureNameToEnable);
+	void K2_DisableGameFeature(const FString& InGameFeatureNameToEnable);
 
 public:
-	void UnLoadGameFeature(const FString& GameFeatureToUnLoad);
+	void UnLoadGameFeature(const FString& InGameFeatureToUnLoad);
 	UFUNCTION(BlueprintCallable)
-	void K2_UnLoadGameFeature(const FString& GameFeatureToUnLoad);
+	void K2_UnLoadGameFeature(const FString& InGameFeatureToUnLoad);
 	
 public:
-	void ReleaseGameFeature(const FString& GameFeatureToRelease);
+	void ReleaseGameFeature(const FString& InGameFeatureToRelease);
 	UFUNCTION(BlueprintCallable)
-	void K2_ReleaseGameFeature(const FString& GameFeatureToRelease);
+	void K2_ReleaseGameFeature(const FString& InGameFeatureToRelease);
 	
 public:
 	bool IsGameFeatureActive(const FString& InGameFeatureName);

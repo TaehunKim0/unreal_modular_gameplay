@@ -3,7 +3,7 @@
 
 #include "BSCharacterMovementComponent.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "DataRegistrySubsystem.h"
 #include "DataRegistryId.h"
 #include "Data/MovementSettingsData.h"

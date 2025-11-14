@@ -4,7 +4,13 @@
 #include "BSAbilitySystemComponent.h"
 
 #include "Abilities/BSGameplayAbility.h"
-#include "BSLogChannels.h"
+#include "Components/GameFrameworkComponentDelegates.h"
+#include "Components/GameFrameworkComponentManager.h"
+#include "Etc/BSGamePlayTags.h"
+#include "Etc/BSLogChannels.h"
+#include "Player/BSPlayerState.h"
+
+const FName UBSAbilitySystemComponent::NAME_ABILITYSYSTEMCOMPONENT("AbilitySystemComponent");
 
 UBSAbilitySystemComponent::UBSAbilitySystemComponent()
 {
@@ -14,7 +20,19 @@ void UBSAbilitySystemComponent::OnRegister()
 {
 	Super::OnRegister();
 
+	RegisterInitStateFeature();
+
 	UE_LOG(LogBS, Log, TEXT("UBSAbilitySystemComponent::OnRegister"));
+}
+
+void UBSAbilitySystemComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	BindOnActorInitStateChanged(NAME_None, FGameplayTag(), false);
+
+	ensure(TryToChangeInitState(BSGamePlayTags::InitState_Spawned));
+	CheckDefaultInitialization();
 }
 
 void UBSAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec& Spec)
@@ -40,6 +58,8 @@ void UBSAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpec& S
 		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
 	}
 }
+
+
 
 void UBSAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGamePaused)
 {
@@ -114,7 +134,10 @@ void UBSAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGameP
 			{
 				UE_LOG(LogBS, Error, TEXT("Invalid AvatarActor: %s"), *AbilitySpecHandle.ToString());
 			}
-			TryActivateAbility(AbilitySpecHandle);
+			if (!TryActivateAbility(AbilitySpecHandle))
+			{
+				UE_LOG(LogBS, Error, TEXT("Invalid AbilitySpecHandle: %s"), *AbilitySpecHandle.ToString());
+			}
 		}
 		else
 		{
@@ -177,8 +200,62 @@ void UBSAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 				InputReleasedSpecHandles.AddUnique(AbilitySpec.Handle);
 				InputHeldSpecHandles.Remove(AbilitySpec.Handle);
 		
-				UE_LOG(LogBS, Log, TEXT("UBSAbilitySystemComponent::AbilityInputTagReleased Tag : %s"), *InputTag.ToString());
+				UE_LOG(LogBS, Log, TEXT("UBSAbilitySystemComponent::		AbilityInputTagReleased Tag : %s"), *InputTag.ToString());
 			}
 		}
 	}
 }
+
+void UBSAbilitySystemComponent::OnPawnSetted(APlayerState* InPlayerState, APawn* InNewPawn, APawn* InOldPawn)
+{
+	InitAbilityActorInfo(GetOwner(), InNewPawn);
+}
+
+// ~ Begin IGameFrameworkInitStateInterface interface
+//
+//
+void UBSAbilitySystemComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager,
+	FGameplayTag CurrentState, FGameplayTag DesiredState)
+{
+	UE_LOG(LogBSInitState, Log, TEXT("UBSAbilitySystemComponent::		Actor State %s -> %s"), *CurrentState.ToString(), *DesiredState.ToString());
+	
+	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
+	{
+		if (const auto PS = Cast<APlayerState>(GetOwner()))
+		{
+			InitAbilityActorInfo(PS, PS->GetPawn());
+
+			if (!PS->OnPawnSet.IsBound())
+				PS->OnPawnSet.AddDynamic(this, &UBSAbilitySystemComponent::OnPawnSetted);
+		}
+	}
+}
+
+bool UBSAbilitySystemComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState,
+	FGameplayTag DesiredState) const
+{
+	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
+	{
+		return Manager->HasFeatureReachedInitState(GetOwningActor(), ABSPlayerState::NAME_PLAYERSTATE,BSGamePlayTags::InitState_DataInitialized);
+	}
+
+	return true;
+}
+
+void UBSAbilitySystemComponent::OnActorInitStateChanged(const FActorInitStateChangedParams& Params)
+{
+	if (Params.FeatureName != NAME_ABILITYSYSTEMCOMPONENT)
+	{
+		//UE_LOG(LogBSInitState, Log, TEXT("UBSPawnInputComponent::OnActorInitStateChanged"));
+		CheckDefaultInitialization();
+	}
+}
+
+void UBSAbilitySystemComponent::CheckDefaultInitialization()
+{
+	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_DataAvailable, BSGamePlayTags::InitState_DataInitialized,BSGamePlayTags::InitState_GameplayReady };
+	ContinueInitStateChain(StateChain);
+}
+//
+//
+// ~ End IGameFrameworkInitStateInterface interface

@@ -3,7 +3,7 @@
 
 #include "BSItemShopSystem.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "DataRegistrySubsystem.h"
 
 void UBSItemShopSystem::Initialize(FSubsystemCollectionBase& Collection)

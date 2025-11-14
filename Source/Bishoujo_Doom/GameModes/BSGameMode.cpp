@@ -1,6 +1,6 @@
 #include "BSGameMode.h"
 #include "BSGameState.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Core/BSCharacterDefinition.h"

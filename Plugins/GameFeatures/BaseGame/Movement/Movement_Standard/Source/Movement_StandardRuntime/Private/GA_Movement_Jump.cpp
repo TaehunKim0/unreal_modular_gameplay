@@ -4,7 +4,7 @@
 #include "GA_Movement_Jump.h"
 
 #include "AbilitySystemComponent.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "GameFramework/Character.h"
 #include "Abilities/Tasks/AbilityTask_StartAbilityState.h"
 #include "GameFramework/CharacterMovementComponent.h"

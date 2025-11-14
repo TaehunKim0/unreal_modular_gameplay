@@ -64,9 +64,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BS|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBSHealthComponent> HealthComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BS|Character", Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UBSAbilitySystemComponent> AbilitySystemComponent;
-
 public:
 	FOnpossessDelegate OnPossessedDelegate;
 	FOnRepPlayerStateDelegate OnRepPlayerStateDelegate;

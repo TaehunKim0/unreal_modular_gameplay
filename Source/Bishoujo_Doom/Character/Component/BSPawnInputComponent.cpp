@@ -2,25 +2,20 @@
 
 
 #include "BSPawnInputComponent.h"
-#include "BSGamePlayTags.h"
-#include "BSLogChannels.h"
+#include "Etc/BSGamePlayTags.h"
+#include "Etc/BSLogChannels.h"
 #include "BSPawnStateManagerComponent.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameplayTagContainer.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "Character/BSCharacter.h"
-#include "Character/BSPawnData.h"
 #include "Components/GameFrameworkComponentDelegates.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "Core/BSCharacterDefinition.h"
 #include "Engine/LocalPlayer.h"
-#include "GameFramework/Character.h"
-#include "GameModes/BSAssetManager.h"
-#include "GameModes/BSGameState.h"
 #include "Input/BSInputComponent.h"
 #include "Input/BSInputSet.h"
-#include "Player/BSPlayerController.h"
 #include "Player/BSPlayerState.h"
 
 const FName UBSPawnInputComponent::NAME_PAWNINPUTCOMPONENT("PawnInputComponent");
@@ -169,6 +164,8 @@ void UBSPawnInputComponent::Input_Move(const FInputActionValue& InputActionValue
 			const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
 			Pawn->AddMovementInput(MovementDirection, Value.Y);
 		}
+
+		OnPawnMoveDelegate.Broadcast(Value);
 	}
 }
 
@@ -221,9 +218,9 @@ void UBSPawnInputComponent::Input_LookStick(const FInputActionValue& InputAction
 void UBSPawnInputComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager,
 	FGameplayTag CurrentState, FGameplayTag DesiredState)
 {
-	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnInputComponent::Actor State %s -> %s"), *CurrentState.ToString(), *DesiredState.ToString());
+	UE_LOG(LogBSInitState, Log, TEXT("UBSPawnInputComponent::			Actor State %s -> %s"), *CurrentState.ToString(), *DesiredState.ToString());
 	
-	if (CurrentState == BSGamePlayTags::InitState_CharacterDefinitionInitialized)
+	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
 	{
 		const APawn* Pawn = GetPawn<APawn>();
 		const ABSPlayerState* BSPS = GetPlayerState<ABSPlayerState>();
@@ -238,9 +235,18 @@ void UBSPawnInputComponent::HandleChangeInitState(UGameFrameworkComponentManager
 bool UBSPawnInputComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager,
 	FGameplayTag CurrentState, FGameplayTag DesiredState) const
 {
-	if (DesiredState == BSGamePlayTags::InitState_CharacterDefinitionInitialized)
+	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
 	{
-		return Manager->HasFeatureReachedInitState(GetOwningActor(), UBSPawnStateManagerComponent::NAME_PAWNSTATEMANAGERCOMPONENT,BSGamePlayTags::InitState_CharacterDefinitionInitialized);
+		const auto PS = Cast<APawn>(GetOwningActor())->GetPlayerState();
+		if (!PS)
+			return false;
+
+		if (Manager->HasFeatureReachedInitState(
+			PS, ABSPlayerState::NAME_PLAYERSTATE,
+			BSGamePlayTags::InitState_DataInitialized))
+			return true;
+
+		return false;
 	}
 
 	return true;
@@ -250,14 +256,13 @@ void UBSPawnInputComponent::OnActorInitStateChanged(const FActorInitStateChanged
 {
 	if (Params.FeatureName != NAME_PAWNINPUTCOMPONENT)
 	{
-		//UE_LOG(LogBSInitState, Log, TEXT("UBSPawnInputComponent::OnActorInitStateChanged"));
 		CheckDefaultInitialization();
 	}
 }
 
 void UBSPawnInputComponent::CheckDefaultInitialization()
 {
-	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned, BSGamePlayTags::InitState_PlayerStateInitialized, BSGamePlayTags::InitState_ASCInitialized, BSGamePlayTags::InitState_CharacterDefinitionInitialized, BSGamePlayTags::InitState_CharacterComponentInitialized, BSGamePlayTags::InitState_GameplayReady };
+	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_DataAvailable, BSGamePlayTags::InitState_DataInitialized,BSGamePlayTags::InitState_GameplayReady };
 	ContinueInitStateChain(StateChain);
 }
 //
