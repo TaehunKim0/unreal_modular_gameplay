@@ -38,12 +38,6 @@ protected:
 	UFUNCTION()
 	void OnCharacterDefinitionChanged(const ABSPlayerState* InPlayerState, const UBSCharacterDefinition* InNewDefinition);
 
-	UFUNCTION()
-	void OnPawnRestarted(APawn* NewPawn);
-
-	UFUNCTION()
-	void OnPlayerStateChanged(APlayerState* NewPlayerState);
-
 public:
 	FSimpleMulticastDelegate OnAbilitySystemInitialized;
 	FSimpleMulticastDelegate OnAbilitySystemUninitialized;

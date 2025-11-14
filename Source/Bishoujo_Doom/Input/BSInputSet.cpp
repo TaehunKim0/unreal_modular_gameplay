@@ -2,7 +2,7 @@
 
 
 #include "BSInputSet.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 
 const UInputAction* UBSInputSet::FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {

@@ -2,18 +2,14 @@
 
 #include "GameFeatureAction_AddWidgets.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/Widget.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
-#include "GameFeatureData.h"
 #include "GameFeatureAction.h"
-#include "Core/GameFeatureActionFilter.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
-#include "GameFramework/PlayerState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
 
 void UGameFeatureAction_AddWidgets::OnGameFeatureRegistering()
@@ -87,9 +83,9 @@ void UGameFeatureAction_AddWidgets::OnGameFeatureUnregistering()
     Super::OnGameFeatureUnregistering();
 }
 
-void UGameFeatureAction_AddWidgets::AddWidgetsForPlayer(UPlayer* Player)
+void UGameFeatureAction_AddWidgets::AddWidgetsForPlayer(UPlayer* InPlayer)
 {
-    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(InPlayer);
     if (!LocalPlayer)
     {
         return;
@@ -114,13 +110,13 @@ void UGameFeatureAction_AddWidgets::AddWidgetsForPlayer(UPlayer* Player)
     {
         FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
         StreamableManager.RequestAsyncLoad(WidgetClassPaths, FStreamableDelegate::CreateUObject(
-            this, &UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded, Player));
+            this, &UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded, InPlayer));
     }
 }
 
-void UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded(UPlayer* Player)
+void UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded(UPlayer* InPlayer)
 {
-    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(InPlayer);
     if (!LocalPlayer)
     {
         return;
@@ -148,9 +144,9 @@ void UGameFeatureAction_AddWidgets::OnWidgetClassesLoaded(UPlayer* Player)
     }
 }
 
-void UGameFeatureAction_AddWidgets::RemoveWidgetsForPlayer(UPlayer* Player)
+void UGameFeatureAction_AddWidgets::RemoveWidgetsForPlayer(UPlayer* InPlayer)
 {
-    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(Player);
+    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(InPlayer);
     if (!LocalPlayer)
     {
         return;

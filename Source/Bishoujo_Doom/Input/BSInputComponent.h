@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BSInputSet.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
 #include "BSInputComponent.generated.h"

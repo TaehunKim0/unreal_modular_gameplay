@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GameFeatures/GameFeatureAction_AddAbilities.h"
+#include "GameFeatureAction/GameFeatureAction_AddAbilities.h"
 
 #include "AbilitySystemComponent.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "EngineUtils.h"
 #include "GameFeaturesSubsystem.h"
 #include "AbilitySystem/Abilities/BSAbilitySet.h"

@@ -61,7 +61,7 @@ public:
 private:
 	TMap<ULocalPlayer*, EUICategory> AddedWidgets;
 	
-	void AddWidgetsForPlayer(UPlayer* Player);
-	void OnWidgetClassesLoaded(UPlayer* Player);
-	void RemoveWidgetsForPlayer(UPlayer* Player);
+	void AddWidgetsForPlayer(UPlayer* InPlayer);
+	void OnWidgetClassesLoaded(UPlayer* InPlayer);
+	void RemoveWidgetsForPlayer(UPlayer* InPlayer);
 };

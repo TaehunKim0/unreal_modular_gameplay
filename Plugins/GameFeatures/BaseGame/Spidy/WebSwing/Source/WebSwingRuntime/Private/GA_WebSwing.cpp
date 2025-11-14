@@ -4,7 +4,7 @@
 #include "GA_WebSwing.h"
 
 #include "AT_WebSwing.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "CentripetalTestActor.h"
 #include "Character/BSCharacter.h"
 #include "GameFramework/Character.h"
@@ -109,7 +109,7 @@ void UGA_WebSwing::LaunchWebToMouse(FHitResult& OutHitResult)
 	
 	// 디버그 라인 (개발 중)
 #if WITH_EDITOR
-	const bool bShowDebugLine = true;
+	const bool bShowDebugLine = false;
 	if (bShowDebugLine)
 	{
 		DrawDebugLine(

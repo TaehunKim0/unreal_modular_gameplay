@@ -3,7 +3,7 @@
 
 #include "AT_WebSwing.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "GA_WebSwing.h"
 #include "Character/BSCharacter.h"
 #include "Character/Component/BSPawnInputComponent.h"
@@ -60,21 +60,7 @@ void UAT_WebSwing::TickTask(float DeltaTime)
 	FVector ResultForce = ForwardPushingForce + TensionForce + IncreasedSpeed;
 	MovementComp->AddForce(ResultForce);
 	
-	DrawDebugDirectionalArrow(
-		GetWorld(),
-		AvatarActor->GetActorLocation(),
-		AvatarActor->GetActorLocation() + MovementComp->Velocity.GetSafeNormal() * 200.f,
-		5.f,
-		FColor::Blue,
-		true,
-		0.0f,
-		0,
-		2.f
-	);
-
 	UpdateCharacterRotation(DeltaTime);
-
-	UE_LOG(LogBS, Log, TEXT("IncreasedSpeed : %f"), IncreasedSpeed.Size());
 }
 
 void UAT_WebSwing::OnDestroy(bool bInOwnerFinished)

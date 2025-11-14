@@ -3,7 +3,7 @@
 
 #include "BSPlayerUISubSystem.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Core/BSCharacterDefinition.h"
@@ -89,8 +89,9 @@ void UBSPlayerUISubSystem::ShowPawnAbilitySetMessage(const ABSPlayerState* InBSP
 	{
 		DebugWidget->ClearDebugMessages();
 	}
-	
-	ShowDebugMessage("DefinitionName",  InNewDefinition->CharacterTag.ToString());
+
+	if (InNewDefinition)
+		ShowDebugMessage("DefinitionName",  InNewDefinition->CharacterTag.ToString());
 
 	// Abilities
 	int Index = 1;
@@ -118,6 +119,20 @@ void UBSPlayerUISubSystem::ShowPawnAbilitySetMessage(const ABSPlayerState* InBSP
 		}
 	}
 
+}
+
+void UBSPlayerUISubSystem::K2_ShowPawnAbilitySetMessage(APawn* InPawn)
+{
+	if (InPawn)
+	{
+		auto BSPS =	Cast<ABSPlayerState>(InPawn->GetPlayerState());
+		
+		if (!BSPS) return;
+
+		auto Def = BSPS->GetCharacterDefData();
+		
+		ShowPawnAbilitySetMessage(BSPS, Def);
+	}
 }
 
 void UBSPlayerUISubSystem::SetUIInputModeOnly(UUserWidget* InFocusWidget, APlayerController* InPlayerController)

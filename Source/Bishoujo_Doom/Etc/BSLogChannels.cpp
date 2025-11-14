@@ -1,4 +1,4 @@
-﻿#include "BSLogChannels.h"
+﻿#include "Etc/BSLogChannels.h"
 
 DEFINE_LOG_CATEGORY(LogBS);
 DEFINE_LOG_CATEGORY(LogBSExperience);

@@ -3,7 +3,7 @@
 
 #include "BSGameInstance.h"
 
-#include "BSGamePlayTags.h"
+#include "Etc/BSGamePlayTags.h"
 #include "Components/GameFrameworkComponentManager.h"
 
 void UBSGameInstance::Init()
@@ -17,11 +17,8 @@ void UBSGameInstance::Init()
 	if (ensure(ComponentManager))
 	{
 		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_Spawned, false, FGameplayTag());
-		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_PlayerStateInitialized, false, FGameplayTag());
-		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_InputComponentInitialized, false, FGameplayTag());
-		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_ASCInitialized, false, FGameplayTag());
-		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_CharacterDefinitionInitialized, false, FGameplayTag());
-		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_CharacterComponentInitialized, false, FGameplayTag());
+		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_DataAvailable, false, FGameplayTag());
+		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_DataInitialized, false, FGameplayTag());
 		ComponentManager->RegisterInitState(BSGamePlayTags::InitState_GameplayReady, false, FGameplayTag());
 	}
 }

@@ -1,6 +1,6 @@
-#include "GameFeatures/GameFeatureAction_AddInputContextMapping.h"
+#include "GameFeatureAction/GameFeatureAction_AddInputContextMapping.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "EngineUtils.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"

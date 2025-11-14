@@ -3,7 +3,7 @@
 
 #include "BSPlayerState.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
 #include "BSPlayerController.h"
 #include "EnhancedInputSubsystems.h"
@@ -11,10 +11,15 @@
 #include "AbilitySystem/Abilities/BSAbilitySet.h"
 #include "AbilitySystem/Attributes/BSHealthAttributeSet.h"
 #include "Character/BSPawnData.h"
+#include "Components/GameFrameworkComponentManager.h"
 #include "Core/BSCharacterDefinition.h"
+#include "Etc/BSGamePlayTags.h"
+#include "GameFramework/Character.h"
 #include "GameModes/BSAssetManager.h"
 #include "GameModes/BSGameState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
+
+const FName ABSPlayerState::NAME_PLAYERSTATE("PlayerState");
 
 ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 {
@@ -34,18 +39,21 @@ ABSPlayerState::ABSPlayerState(const FObjectInitializer& ObjectInitializer)
 	UE_LOG(LogBS, Log, TEXT("ABSPlayerState::ABSPlayerState"));
 }
 
-void ABSPlayerState::PostInitializeComponents()
+void ABSPlayerState::PreInitializeComponents()
 {
-	Super::PostInitializeComponents();
+	Super::PreInitializeComponents();
 
-	check(AbilitySystemComponent);
-	AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
+	RegisterInitStateFeature();
+}
 
-	const FPrimaryAssetId DefaultCharacterDefID("Character", "Default");
-	auto NewCharacterDef = UBSAssetManager::Get().LoadCharacterDefinitionSynchronously(DefaultCharacterDefID);
-	CharacterDefData = NewCharacterDef;
+void ABSPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
 
-	
+	BindOnActorInitStateChanged(NAME_None, FGameplayTag(), false);
+
+	ensure(TryToChangeInitState(BSGamePlayTags::InitState_Spawned));
+	CheckDefaultInitialization();
 }
 
 void ABSPlayerState::Tick(float DeltaSeconds)
@@ -56,6 +64,16 @@ void ABSPlayerState::Tick(float DeltaSeconds)
 ABSPlayerController* ABSPlayerState::GetBSPlayerController() const
 {
 	return Cast<ABSPlayerController>(GetOwner());
+}
+
+void ABSPlayerState::InitWithPawn()
+{
+	// check(AbilitySystemComponent);
+	// AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
+
+	const FPrimaryAssetId DefaultCharacterDefID("Character", "Default");
+	auto NewCharacterDef = UBSAssetManager::Get().LoadCharacterDefinitionSynchronously(DefaultCharacterDefID);
+	CharacterDefData = NewCharacterDef;
 }
 
 void ABSPlayerState::GetLifetimeReplicatedProps(
@@ -83,3 +101,34 @@ void ABSPlayerState::SetCharacterDefData(const UBSCharacterDefinition* InCharact
 	
 	UE_LOG(LogBS, Warning, TEXT("ABSPlayerState::SetCharacterDefData"));
 }
+
+
+//IGameFrameworkInitStateInterface interface Start~
+bool ABSPlayerState::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState,
+	FGameplayTag DesiredState) const
+{
+	return true;
+}
+
+void ABSPlayerState::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState,
+	FGameplayTag DesiredState)
+{
+	UE_LOG(LogBSInitState, Log, TEXT("ABSPlayerState::				Actor State %s -> %s"), *CurrentState.ToString(), *DesiredState.ToString());
+
+	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
+	{
+		InitWithPawn();
+	}
+}
+
+void ABSPlayerState::OnActorInitStateChanged(const FActorInitStateChangedParams& Params)
+{
+	IGameFrameworkInitStateInterface::OnActorInitStateChanged(Params);
+}
+
+void ABSPlayerState::CheckDefaultInitialization()
+{
+	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_DataAvailable, BSGamePlayTags::InitState_DataInitialized,BSGamePlayTags::InitState_GameplayReady };
+	ContinueInitStateChain(StateChain);
+}
+//~ End IGameFrameworkInitStateInterface interface

@@ -4,7 +4,7 @@
 #include "BSDebugWidget.h"
 
 #include "BSDebugBoxElementWidget.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "Components/HorizontalBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"

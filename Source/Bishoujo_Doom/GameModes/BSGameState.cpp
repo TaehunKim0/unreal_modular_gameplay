@@ -5,7 +5,7 @@
 
 #include "BSAssetManager.h"
 #include "Core/BSCharacterDefinition.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "Net/UnrealNetwork.h"
 
 ABSGameState::ABSGameState()

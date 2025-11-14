@@ -4,7 +4,7 @@
 #include "BSShopWidget.h"
 
 #include "BSItemShopSystem.h"
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 #include "BSShopItemWidget.h"
 #include "Components/ScrollBox.h"
 

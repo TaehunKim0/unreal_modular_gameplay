@@ -3,7 +3,7 @@
 
 #include "CentripetalTestActor.h"
 
-#include "BSLogChannels.h"
+#include "Etc/BSLogChannels.h"
 
 // Sets default values
 ACentripetalTestActor::ACentripetalTestActor()

@@ -3,8 +3,8 @@
 
 #include "Character/Component/BSHealthComponent.h"
 
-#include "BSGamePlayTags.h"
-#include "BSLogChannels.h"
+#include "Etc/BSGamePlayTags.h"
+#include "Etc/BSLogChannels.h"
 #include "BSPawnInputComponent.h"
 #include "BSPawnStateManagerComponent.h"
 #include "AbilitySystem/BSAbilitySystemComponent.h"
@@ -12,6 +12,7 @@
 #include "Character/BSCharacter.h"
 #include "Components/GameFrameworkComponentDelegates.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "Player/BSPlayerState.h"
 #include "UI/SubSystem/BSPlayerUISubSystem.h"
 
 const FName UBSHealthComponent::NAME_HEALTHCOMPONENT("HealthComponent");
@@ -103,9 +104,7 @@ void UBSHealthComponent::HandleMaxHealthChanged(AActor* DamageInstigator, AActor
 void UBSHealthComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState,
 											   FGameplayTag DesiredState)
 {
-	UE_LOG(LogBSInitState, Log, TEXT("UBSHealthComponent::Actor State %s -> %s"), *CurrentState.ToString(), *DesiredState.ToString());
-	
-	if (CurrentState == BSGamePlayTags::InitState_ASCInitialized)
+	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
 	{
 		const auto BSCharacter = Cast<ABSCharacter>(GetOwningActor());
 		if (BSCharacter)
@@ -118,9 +117,25 @@ void UBSHealthComponent::HandleChangeInitState(UGameFrameworkComponentManager* M
 bool UBSHealthComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState,
 	FGameplayTag DesiredState) const
 {
-	if (DesiredState == BSGamePlayTags::InitState_ASCInitialized)
+	if (DesiredState == BSGamePlayTags::InitState_DataInitialized)
 	{
-		return Manager->HasFeatureReachedInitState(GetOwningActor(), UBSPawnStateManagerComponent::NAME_PAWNSTATEMANAGERCOMPONENT,BSGamePlayTags::InitState_ASCInitialized);
+		const auto PS = Cast<APawn>(GetOwningActor())->GetPlayerState();
+		if (!PS)
+			return false;
+
+		// 이 부분
+		if (Manager->HasFeatureReachedInitState(
+			PS, ABSPlayerState::NAME_PLAYERSTATE,
+			BSGamePlayTags::InitState_DataInitialized)
+			
+		&& Manager->HasFeatureReachedInitState(
+			PS, UBSAbilitySystemComponent::NAME_ABILITYSYSTEMCOMPONENT,
+			BSGamePlayTags::InitState_DataInitialized))
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	return true;
@@ -136,7 +151,7 @@ void UBSHealthComponent::OnActorInitStateChanged(const FActorInitStateChangedPar
 
 void UBSHealthComponent::CheckDefaultInitialization()
 {
-	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_PlayerStateInitialized, BSGamePlayTags::InitState_InputComponentInitialized, BSGamePlayTags::InitState_ASCInitialized, BSGamePlayTags::InitState_CharacterDefinitionInitialized, BSGamePlayTags::InitState_CharacterComponentInitialized, BSGamePlayTags::InitState_GameplayReady };
+	static const TArray<FGameplayTag> StateChain = { BSGamePlayTags::InitState_Spawned,BSGamePlayTags::InitState_DataAvailable, BSGamePlayTags::InitState_DataInitialized,BSGamePlayTags::InitState_GameplayReady };
 	ContinueInitStateChain(StateChain);
 }
 
