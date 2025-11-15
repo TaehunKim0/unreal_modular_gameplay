@@ -29,6 +29,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void K2_EnableGameFeature(const FString& InGameFeatureNameToEnable);
 
+	void ReActiveGameFeature(const FString& InGameFeatureNameToEnable);
+
 public:
 	void DisableGameFeature(const FString& InGameFeatureToDisable);
 	void DisableGameFeatures(const TArray<FString>& InGameFeaturesToDisable);

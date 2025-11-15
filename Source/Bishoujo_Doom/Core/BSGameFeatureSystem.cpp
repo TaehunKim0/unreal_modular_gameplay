@@ -21,7 +21,6 @@ void UBSGameFeatureSystem::EnableGameFeature(
 {
 	UGameFeaturesSubsystem& GameFeatureSubsystem = UGameFeaturesSubsystem::Get();
 
-	
 	GameFeatureSubsystem.LoadGameFeaturePlugin(
 		GetPluginURLByName(InGameFeatureNameToEnable),
 		InLoadCompleteDelegate);
@@ -40,6 +39,28 @@ void UBSGameFeatureSystem::K2_EnableGameFeature(const FString& InGameFeatureName
 		{
 			UE_LOG(LogBS, Warning, TEXT("UBSGameFeatureSystem::GameFeatureSubsystem Activated : %s"), *InGameFeatureNameToEnable);
 		}));
+}
+
+void UBSGameFeatureSystem::ReActiveGameFeature(const FString& InGameFeatureNameToEnable)
+{
+	UGameFeaturesSubsystem* GameFeatureSubsystem = GEngine->GetEngineSubsystem<UGameFeaturesSubsystem>();
+	FGameFeatureActivatingContext Context{};
+	const FWorldContext* ExistingWorldContext = GEngine->GetWorldContextFromWorld(GetWorld());
+	if (ExistingWorldContext)
+	{
+		Context.SetRequiredWorldContextHandle(ExistingWorldContext->ContextHandle);
+	}
+	
+	if (auto GameFeature = GameFeatureSubsystem->GetGameFeatureDataForActivePluginByURL(GetPluginURLByName(InGameFeatureNameToEnable)))
+	{
+		for (UGameFeatureAction* Action : GameFeature->GetActions())
+		{
+			if (Action != nullptr)
+			{
+				Action->OnGameFeatureActivating(Context);
+			}
+		}
+	}
 }
 
 void UBSGameFeatureSystem::DisableGameFeature(const FString& InGameFeatureToDisable)

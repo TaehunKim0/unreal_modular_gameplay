@@ -10,6 +10,11 @@
 #include "AbilitySystem/Abilities/BSAbilitySet.h"
 #include "Character/BSCharacter.h"
 
+UGameFeatureAction_AddAbilities::UGameFeatureAction_AddAbilities(const FObjectInitializer& ObjectInitializer)
+{
+	UE_LOG(LogBS, Warning, TEXT("UGameFeatureAction_AddAbilities 생성"));
+}
+
 void UGameFeatureAction_AddAbilities::OnGameFeatureActivating(FGameFeatureActivatingContext& Context)
 {
 	Super::OnGameFeatureActivating(Context);
@@ -110,7 +115,7 @@ void UGameFeatureAction_AddAbilities::AddActorAbilities(AActor* InActor, const F
 			{
 				FGameplayAbilitySpec Spec(AbilityToGrant.Ability, AbilityToGrant.AbilityLevel, INDEX_NONE, InActor);
 				Spec.GetDynamicSpecSourceTags().AddTag(AbilityToGrant.InputTag);
-				
+
 				FGameplayAbilitySpecHandle AbilityHandle = ASC->GiveAbility(Spec);
 
 				if (AbilityHandle.IsValid())

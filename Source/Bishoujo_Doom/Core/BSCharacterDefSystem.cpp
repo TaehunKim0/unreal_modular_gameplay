@@ -28,6 +28,7 @@ void UBSCharacterDefSystem::ApplyCharacterDefinition(ABSPlayerState* InPlayerSta
 {
 	if (!NewCharacterDef || !InPlayerState) return;
 
+	ClearASC(InPlayerState);
 	ApplyPawnData(InPlayerState, NewCharacterDef);
 	ApplyGameFeatureAction(NewCharacterDef);
 	EnableGameFeatures(InPlayerState, NewCharacterDef->GameFeaturesNameToEnable, NewCharacterDef);
@@ -62,6 +63,11 @@ void UBSCharacterDefSystem::ApplyGameFeatureAction(const UBSCharacterDefinition*
 			}
 		}
 	}
+}
+
+void UBSCharacterDefSystem::ClearASC(const ABSPlayerState* InPlayerState)
+{
+	InPlayerState->GetAbilitySystemComponent()->ClearAllAbilities();
 }
 
 bool UBSCharacterDefSystem::RespawningPawn(const ABSPlayerState* InPlayerState,
@@ -256,6 +262,21 @@ void UBSCharacterDefSystem::EnableGameFeatures(ABSPlayerState* InPlayerState,
 		for (const FString& FeatureName : InGameFeaturesNameToEnable)
 		{
 			FString PluginURL = BSGameFeatureSystem->GetPluginURLByName(FeatureName);
+
+			if (BSGameFeatureSystem->IsGameFeatureActive(FeatureName))
+			{
+				BSGameFeatureSystem->ReActiveGameFeature(FeatureName);
+				
+				RequiredEnableCount--;
+
+				if (RequiredEnableCount == 0)
+				{
+					InPlayerState->SetCharacterDefData(NewCharacterDef);
+					OnCharacterDefinitionChangedDelegate.Broadcast(InPlayerState, NewCharacterDef);
+				}
+				continue;
+			}
+			
 			BSGameFeatureSystem->EnableGameFeature(
 				FeatureName,
 				FGameFeaturePluginLoadComplete::CreateLambda([this, InPlayerState, PluginURL](const UE::GameFeatures::FResult& Result)

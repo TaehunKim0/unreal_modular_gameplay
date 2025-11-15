@@ -35,6 +35,8 @@ class BISHOUJO_DOOM_API UGameFeatureAction_AddAbilities : public UGameFeatureAct
 
 public:
 	//~ Begin UGameFeatureAction interface
+	UGameFeatureAction_AddAbilities(const FObjectInitializer& ObjectInitializer);
+	
 	virtual void OnGameFeatureActivating(FGameFeatureActivatingContext& Context) override;
 	virtual void OnGameFeatureDeactivating(FGameFeatureDeactivatingContext& Context) override;
 	//~ End UGameFeatureAction interface

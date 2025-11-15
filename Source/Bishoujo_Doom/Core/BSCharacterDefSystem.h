@@ -45,6 +45,7 @@ private:
 	void ApplyPawnData(const ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
 	void ApplyGameFeatureAction(const UBSCharacterDefinition* NewCharacterDef);
 
+	void ClearASC(const ABSPlayerState* InPlayerState);
 	bool RespawningPawn(const ABSPlayerState* InPlayerState, const UBSCharacterDefinition* NewCharacterDef);
 	
 	void CleanupCharacterDefinition(ABSPlayerState* InPlayerState, const UBSCharacterDefinition* OldCharacterDef);
